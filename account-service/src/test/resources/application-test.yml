@@ -1,0 +1,19 @@
+# Perfil de tests: base H2 en memoria y sin Eureka, para que los tests no dependan de infraestructura.
+spring:
+  datasource:
+    url: jdbc:h2:mem:accounts;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+eureka:
+  client:
+    enabled: false
+
+app:
+  jwt:
+    secret: test-secret-de-al-menos-32-bytes-0123456789
+  internal-api-key: test-internal-key
