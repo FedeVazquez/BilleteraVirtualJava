@@ -1,0 +1,26 @@
+server:
+  port: ${SERVER_PORT:8761}
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
+  client:
+    # El servidor no se registra a si mismo ni descarga el registro.
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    # En local hay pocas instancias: sin esto Eureka entra en modo de autopreservacion
+    # y no da de baja los servicios que se apagan.
+    enable-self-preservation: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
