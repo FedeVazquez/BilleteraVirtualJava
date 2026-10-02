@@ -1,0 +1,84 @@
+server:
+  # En esta maquina el 8080 esta ocupado por otro proceso, por eso el gateway usa el 8090.
+  port: ${SERVER_PORT:8090}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          # "lb://nombre" = buscar el servicio en Eureka y balancear entre sus instancias.
+          # Los endpoints /internal/** de los servicios NO tienen ruta: no son accesibles desde afuera.
+          routes:
+            - id: users-service
+              uri: lb://users-service
+              predicates:
+                - Path=/users/**
+            - id: auth-service
+              uri: lb://auth-service
+              predicates:
+                - Path=/auth/**,/user/logout
+            - id: account-service
+              uri: lb://account-service
+              predicates:
+                - Path=/accounts/**
+            # Documentacion OpenAPI de cada servicio, para el Swagger UI unificado del gateway.
+            - id: users-service-docs
+              uri: lb://users-service
+              predicates:
+                - Path=/api-docs/users
+              filters:
+                - SetPath=/v3/api-docs
+            - id: auth-service-docs
+              uri: lb://auth-service
+              predicates:
+                - Path=/api-docs/auth
+              filters:
+                - SetPath=/v3/api-docs
+            - id: account-service-docs
+              uri: lb://account-service
+              predicates:
+                - Path=/api-docs/accounts
+              filters:
+                - SetPath=/v3/api-docs
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                # Origenes del frontend en desarrollo local.
+                allowed-origin-patterns: ${CORS_ALLOWED_ORIGINS:http://localhost:[*]}
+                allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+                allowed-headers: '*'
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: auth-service
+        url: /api-docs/auth
+      - name: users-service
+        url: /api-docs/users
+      - name: account-service
+        url: /api-docs/accounts
+
+app:
+  security:
+    # Rutas que no exigen token. El resto pasa por la validacion contra auth-service.
+    public-paths:
+      - POST /users/register
+      - ANY /auth/**
+      - GET /api-docs/**
