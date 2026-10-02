@@ -1,0 +1,42 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3307}/${DB_NAME:dmh_auth}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${DB_USER:dmh}
+    password: ${DB_PASSWORD:dmh_password}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Spring Data JPA crea/actualiza las tablas a partir de las entidades.
+      ddl-auto: update
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  jwt:
+    # Valores por defecto SOLO para desarrollo local. En cualquier otro entorno se
+    # sobreescriben con las variables de entorno JWT_SECRET e INTERNAL_API_KEY.
+    secret: ${JWT_SECRET:dmh-dev-secret-cambiar-en-produccion-0123456789}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:60}
+  internal-api-key: ${INTERNAL_API_KEY:dmh-dev-internal-key}
+  openapi:
+    server-url: ${GATEWAY_URL:http://localhost:8090}
