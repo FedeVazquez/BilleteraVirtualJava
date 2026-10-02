@@ -1,0 +1,24 @@
+# Maven
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# Eclipse
+.classpath
+.project
+.settings/
+.factorypath
+bin/
+.metadata/
+
+# IntelliJ / VS Code
+.idea/
+*.iml
+.vscode/
+
+# Entorno local
+.env
+*.log
+
+# SO
+Thumbs.db
+.DS_Store
