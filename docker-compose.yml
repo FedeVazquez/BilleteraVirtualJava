@@ -1,0 +1,143 @@
+# Digital Money House - entorno local completo.
+#
+#   Todo en Docker:                 docker compose up -d --build
+#   Solo infraestructura            docker compose up -d mysql mailhog
+#   (y los servicios desde Eclipse)
+#
+# Los valores ${VAR:-defecto} son solo para desarrollo local. Para cambiarlos, copiar .env.example a .env.
+
+name: dmh
+
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  networks: [dmh-net]
+
+x-common-env: &common-env
+  EUREKA_URL: http://eureka-server:8761/eureka/
+  JWT_SECRET: ${JWT_SECRET:-dmh-dev-secret-cambiar-en-produccion-0123456789}
+  INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dmh-dev-internal-key}
+  GATEWAY_URL: http://localhost:${GATEWAY_PORT:-8090}
+
+x-db-env: &db-env
+  DB_HOST: mysql
+  DB_PORT: 3306
+  DB_USER: dmh
+  DB_PASSWORD: ${DB_PASSWORD:-dmh_password}
+
+services:
+
+  # ---------- Infraestructura ----------
+
+  mysql:
+    <<: *service-defaults
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+      MYSQL_USER: dmh
+      MYSQL_PASSWORD: ${DB_PASSWORD:-dmh_password}
+    volumes:
+      # Los datos sobreviven a "docker compose down" (se borran con "down -v").
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      # Publicado solo para poder conectarse desde Eclipse o un cliente SQL.
+      - "127.0.0.1:${MYSQL_PORT:-3307}:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -udmh -p$$MYSQL_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  # Servidor SMTP falso: atrapa los mails y los muestra en http://localhost:8025
+  mailhog:
+    <<: *service-defaults
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
+  # ---------- Microservicios ----------
+
+  eureka-server:
+    <<: *service-defaults
+    build:
+      context: .
+      args:
+        MODULE: eureka-server
+    environment:
+      EUREKA_HOSTNAME: eureka-server
+    ports:
+      # Panel de Eureka: http://localhost:8761
+      - "127.0.0.1:8761:8761"
+
+  api-gateway:
+    <<: *service-defaults
+    build:
+      context: .
+      args:
+        MODULE: api-gateway
+    environment:
+      <<: *common-env
+    ports:
+      # Unico punto de entrada a la API. Los demas servicios no publican puertos:
+      # solo son alcanzables dentro de la red interna dmh-net.
+      - "${GATEWAY_PORT:-8090}:8090"
+    depends_on: [eureka-server]
+
+  auth-service:
+    <<: *service-defaults
+    build:
+      context: .
+      args:
+        MODULE: auth-service
+    environment:
+      <<: [*common-env, *db-env]
+      DB_NAME: dmh_auth
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+  users-service:
+    <<: *service-defaults
+    build:
+      context: .
+      args:
+        MODULE: users-service
+    environment:
+      <<: [*common-env, *db-env]
+      DB_NAME: dmh_users
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      PASSWORD_RESET_URL: http://localhost:${GATEWAY_PORT:-8090}/auth/reset-password.html
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      mailhog:
+        condition: service_started
+
+  account-service:
+    <<: *service-defaults
+    build:
+      context: .
+      args:
+        MODULE: account-service
+    environment:
+      <<: [*common-env, *db-env]
+      DB_NAME: dmh_accounts
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+
+networks:
+  dmh-net:
+    driver: bridge
+
+volumes:
+  mysql-data:

@@ -1,0 +1,13 @@
+.git
+.idea
+.vscode
+.settings
+.classpath
+.project
+**/target
+**/bin
+docs
+scripts
+*.md
+.env
+mails.jsonl
