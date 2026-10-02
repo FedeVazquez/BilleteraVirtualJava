@@ -30,9 +30,13 @@ public interface UsersClient {
     void requestPasswordReset(@RequestBody EmailRequest request);
 
     @PostMapping("/internal/users/password-reset/confirm")
-    void confirmPasswordReset(@RequestBody NewPasswordRequest request);
+    PasswordResetResult confirmPasswordReset(@RequestBody NewPasswordRequest request);
 
     /** Cuerpo que espera users-service para confirmar el cambio de contraseña. */
     record NewPasswordRequest(String token, String newPassword) {
+    }
+
+    /** Usuario al que se le cambio la contraseña. */
+    record PasswordResetResult(Long userId) {
     }
 }

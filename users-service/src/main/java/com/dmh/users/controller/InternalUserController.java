@@ -64,8 +64,11 @@ public class InternalUserController {
     }
 
     @PostMapping("/password-reset/confirm")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void confirmPasswordReset(@Valid @RequestBody ResetPasswordRequest request) {
-        passwordResetService.confirm(request.token(), request.newPassword());
+    public PasswordResetResult confirmPasswordReset(@Valid @RequestBody ResetPasswordRequest request) {
+        return new PasswordResetResult(passwordResetService.confirm(request.token(), request.newPassword()));
+    }
+
+    /** Usuario al que se le cambio la contraseña. */
+    public record PasswordResetResult(Long userId) {
     }
 }

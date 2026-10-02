@@ -20,10 +20,14 @@ import io.jsonwebtoken.security.Keys;
  * Emite y valida los JWT (firma HS256 con un secreto compartido por todos los microservicios).
  * <p>
  * Claims: sub = id del usuario, email, roles, jti = identificador unico del token (se usa para
- * invalidarlo en el logout), iat y exp.
+ * invalidarlo en el logout), iat y exp. Como iat solo tiene precision de segundos, se agrega
+ * iatMs (milisegundos) para poder decidir con exactitud si un token es anterior a un cambio de
+ * contraseña.
  */
 @Service
 public class JwtService {
+
+    public static final String ISSUED_AT_MILLIS = "iatMs";
 
     private final SecretKey key;
     private final Duration expiration;
@@ -42,6 +46,7 @@ public class JwtService {
                 .claim("email", email)
                 .claim("roles", roles)
                 .issuedAt(Date.from(now))
+                .claim(ISSUED_AT_MILLIS, now.toEpochMilli())
                 .expiration(Date.from(now.plus(expiration)))
                 .signWith(key)
                 .compact();

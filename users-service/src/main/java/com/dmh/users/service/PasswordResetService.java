@@ -59,14 +59,18 @@ public class PasswordResetService {
         });
     }
 
+    /**
+     * @return el id del usuario, para que auth-service pueda cerrar sus sesiones abiertas
+     */
     @Transactional
-    public void confirm(String token, String newPassword) {
+    public Long confirm(String token, String newPassword) {
         User user = userRepository.findByResetTokenHash(hash(token))
                 .orElseThrow(() -> new ValidationException("El enlace no es válido o ya fue utilizado"));
         if (Instant.now().isAfter(user.getResetTokenExpiresAt())) {
             throw new ValidationException("El enlace venció. Solicite uno nuevo.");
         }
         user.changePassword(passwordEncoder.encode(newPassword));
+        return user.getId();
     }
 
     static String hash(String token) {

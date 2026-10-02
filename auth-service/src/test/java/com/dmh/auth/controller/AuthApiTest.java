@@ -31,6 +31,7 @@ import com.dmh.auth.dto.CredentialsResponse;
 import com.dmh.auth.exception.ResourceNotFoundException;
 import com.dmh.auth.exception.ValidationException;
 import com.dmh.auth.repository.RevokedTokenRepository;
+import com.dmh.auth.repository.UserSessionRevocationRepository;
 import com.dmh.auth.security.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -58,6 +59,8 @@ class AuthApiTest {
     private JwtService jwtService;
     @Autowired
     private RevokedTokenRepository revokedTokenRepository;
+    @Autowired
+    private UserSessionRevocationRepository userSessionRevocationRepository;
 
     @MockitoBean
     private UsersClient usersClient;
@@ -65,6 +68,7 @@ class AuthApiTest {
     @BeforeEach
     void setUp() {
         revokedTokenRepository.deleteAll();
+        userSessionRevocationRepository.deleteAll();
     }
 
     private void existeElUsuario(boolean emailVerified) {
@@ -245,11 +249,28 @@ class AuthApiTest {
 
     @Test
     void cambiarLaContraseniaConLasDosClavesIgualesDevuelve200() throws Exception {
+        when(usersClient.confirmPasswordReset(any())).thenReturn(new UsersClient.PasswordResetResult(7L));
+
         mockMvc.perform(post("/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"token\": \"abc\", \"password\": \"ClaveNueva1\", \"passwordConfirm\": \"ClaveNueva1\"}"))
                 .andExpect(status().isOk());
 
         verify(usersClient).confirmPasswordReset(new UsersClient.NewPasswordRequest("abc", "ClaveNueva1"));
+    }
+
+    @Test
+    void cambiarLaContraseniaCierraLasSesionesAbiertasPeroPermiteVolverAIngresar() throws Exception {
+        String tokenAnterior = login();
+        when(usersClient.confirmPasswordReset(any())).thenReturn(new UsersClient.PasswordResetResult(7L));
+
+        mockMvc.perform(post("/auth/reset-password").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\": \"abc\", \"password\": \"ClaveNueva1\", \"passwordConfirm\": \"ClaveNueva1\"}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/auth/validate").header("Authorization", "Bearer " + tokenAnterior))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/auth/validate").header("Authorization", "Bearer " + login()))
+                .andExpect(status().isOk());
     }
 
     @Test

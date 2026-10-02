@@ -1,5 +1,6 @@
 package com.dmh.auth.service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 
@@ -16,7 +17,9 @@ import com.dmh.auth.exception.EmailNotVerifiedException;
 import com.dmh.auth.exception.UnauthorizedException;
 import com.dmh.auth.exception.ValidationException;
 import com.dmh.auth.model.RevokedToken;
+import com.dmh.auth.model.UserSessionRevocation;
 import com.dmh.auth.repository.RevokedTokenRepository;
+import com.dmh.auth.repository.UserSessionRevocationRepository;
 import com.dmh.auth.security.JwtService;
 
 import io.jsonwebtoken.Claims;
@@ -31,13 +34,16 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RevokedTokenRepository revokedTokenRepository;
+    private final UserSessionRevocationRepository userSessionRevocationRepository;
 
     public AuthService(UsersClient usersClient, PasswordEncoder passwordEncoder, JwtService jwtService,
-            RevokedTokenRepository revokedTokenRepository) {
+            RevokedTokenRepository revokedTokenRepository,
+            UserSessionRevocationRepository userSessionRevocationRepository) {
         this.usersClient = usersClient;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.revokedTokenRepository = revokedTokenRepository;
+        this.userSessionRevocationRepository = userSessionRevocationRepository;
     }
 
     /**
@@ -77,16 +83,35 @@ public class AuthService {
     }
 
     /**
-     * Un token es valido si su firma es correcta, no vencio y no fue invalidado por un logout.
+     * Invalida todos los tokens que el usuario tenga emitidos hasta este momento
+     * (se usa cuando cambia su contraseña).
+     */
+    public void revokeAllSessions(Long userId) {
+        userSessionRevocationRepository.save(new UserSessionRevocation(userId, Instant.now()));
+    }
+
+    /**
+     * Un token es valido si su firma es correcta, no vencio, no fue invalidado por un logout y no es
+     * anterior al ultimo cambio de contraseña del usuario.
      */
     public TokenInfoResponse validate(String authorizationHeader) {
         Claims claims = parseBearer(authorizationHeader);
-        if (revokedTokenRepository.existsByJti(claims.getId())) {
+        Long userId = Long.valueOf(claims.getSubject());
+        boolean revoked = revokedTokenRepository.existsByJti(claims.getId())
+                || userSessionRevocationRepository.findById(userId)
+                        .map(revocation -> issuedAt(claims).isBefore(revocation.getRevokedBefore()))
+                        .orElse(false);
+        if (revoked) {
             throw new UnauthorizedException("La sesión fue cerrada. Vuelva a iniciar sesión.");
         }
         List<?> roles = claims.get("roles", List.class);
-        return new TokenInfoResponse(Long.valueOf(claims.getSubject()), claims.get("email", String.class),
+        return new TokenInfoResponse(userId, claims.get("email", String.class),
                 roles == null ? List.of() : roles.stream().map(Object::toString).toList());
+    }
+
+    private static Instant issuedAt(Claims claims) {
+        Long millis = claims.get(JwtService.ISSUED_AT_MILLIS, Long.class);
+        return millis != null ? Instant.ofEpochMilli(millis) : claims.getIssuedAt().toInstant();
     }
 
     private Claims parseBearer(String authorizationHeader) {
@@ -95,7 +120,8 @@ public class AuthService {
         }
         try {
             Claims claims = jwtService.parse(authorizationHeader.substring(BEARER_PREFIX.length()).trim());
-            if (claims.getId() == null || claims.getSubject() == null || claims.getExpiration() == null) {
+            if (claims.getId() == null || claims.getSubject() == null || claims.getIssuedAt() == null
+                    || claims.getExpiration() == null) {
                 throw new UnauthorizedException("Token inválido");
             }
             return claims;
