@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Digital Money House — Informe de trabajo del Sprint 1</title>
+<style>
+  @page { size: A4; margin: 17mm 16mm 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.2pt; line-height: 1.45; color: #1e293b; margin: 0; }
+  h1 { font-size: 23pt; margin: 0 0 4pt; color: #0f172a; line-height: 1.15; }
+  h2 { font-size: 14.5pt; color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 3pt; margin: 20pt 0 8pt; break-after: avoid; }
+  h3 { font-size: 11.5pt; color: #0f172a; margin: 13pt 0 4pt; break-after: avoid; }
+  p { margin: 0 0 7pt; }
+  ul, ol { margin: 0 0 7pt; padding-left: 17pt; }
+  li { margin-bottom: 2.5pt; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; background: #f1f5f9; padding: 0 2.5pt; border-radius: 2pt; }
+  pre { font-family: Consolas, "Courier New", monospace; font-size: 8.6pt; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4pt; padding: 6pt 8pt; margin: 0 0 8pt; white-space: pre-wrap; break-inside: avoid; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 10pt; font-size: 9.2pt; }
+  th { background: #1e3a8a; color: #fff; text-align: left; padding: 4pt 6pt; font-weight: 600; }
+  td { border: 1px solid #cbd5e1; padding: 4pt 6pt; vertical-align: top; }
+  tr { break-inside: avoid; }
+  thead { display: table-header-group; }
+  tbody tr:nth-child(even) td { background: #f8fafc; }
+  .cover { border-left: 6px solid #1e3a8a; padding: 4pt 0 4pt 14pt; margin-bottom: 14pt; }
+  .cover .sub { font-size: 12.5pt; color: #475569; margin: 0; }
+  .meta { color: #475569; font-size: 9.5pt; margin-top: 7pt; }
+  .box { border: 1px solid #cbd5e1; border-left: 4px solid #1e3a8a; background: #f8fafc; border-radius: 3pt; padding: 7pt 10pt; margin: 0 0 10pt; break-inside: avoid; }
+  .box.warn { border-left-color: #b45309; background: #fffbeb; }
+  .box p:last-child, .box ul:last-child { margin-bottom: 0; }
+  .ok { color: #166534; font-weight: 600; }
+  .pend { color: #b45309; font-weight: 600; }
+  .num { text-align: right; white-space: nowrap; }
+  .nowrap { white-space: nowrap; }
+  figure { margin: 4pt 0 10pt; break-inside: avoid; text-align: center; }
+  figure img { width: 100%; border: 1px solid #cbd5e1; border-radius: 4pt; }
+  figcaption { font-size: 8.8pt; color: #475569; margin-top: 3pt; }
+  .kpis { display: flex; gap: 8pt; margin: 0 0 11pt; }
+  .kpi { flex: 1; border: 1px solid #cbd5e1; border-radius: 4pt; padding: 6pt 8pt; text-align: center; }
+  .kpi b { display: block; font-size: 17pt; color: #1e3a8a; line-height: 1.15; }
+  .kpi span { font-size: 8.6pt; color: #475569; }
+  .break { break-before: page; }
+  .step td:first-child { font-weight: 600; text-align: center; width: 22pt; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Digital Money House<br>Informe de trabajo del Sprint 1</h1>
+  <p class="sub">Qué se hizo, y en qué momento y para qué se usó cada herramienta y framework</p>
+  <p class="meta">Desafío profesional Backend · Proyecto en <code>Desktop\DigitalMoneyHouse</code> · Rama <code>dev</code> · 2 de octubre de 2026</p>
+</div>
+
+<h2 id="s1">1. Resumen</h2>
+
+<p>Se construyó desde cero el backend del Sprint 1 como <strong>cinco microservicios</strong> con Java 21 y
+Spring Boot 3.5: registro de usuario con cuenta digital (CVU y alias), login con token JWT y logout que
+invalida el token. Se implementaron también las dos historias opcionales (verificación de email con código
+de 6 dígitos y recupero de contraseña por mail) y las tres épicas de soporte: testing, infraestructura y
+documentación.</p>
+
+<div class="kpis">
+  <div class="kpi"><b>5</b><span>microservicios</span></div>
+  <div class="kpi"><b>125</b><span>tests JUnit en verde</span></div>
+  <div class="kpi"><b>72</b><span>casos de prueba (70 pasan, 2 bloqueados)</span></div>
+  <div class="kpi"><b>5</b><span>defectos hallados y corregidos</span></div>
+  <div class="kpi"><b>11</b><span>endpoints</span></div>
+</div>
+
+<div class="box warn">
+  <p><strong>Lo que no se pudo verificar.</strong> Docker Desktop no arranca en esta máquina: Windows no
+  tiene habilitada la característica "Plataforma de máquina virtual", y habilitarla requiere permisos de
+  administrador y reiniciar. Por eso <strong>el entorno con Docker Compose, MySQL y MailHog quedó escrito
+  y validado en su sintaxis, pero no ejecutado</strong>. Todo lo demás se levantó y se probó de punta a
+  punta con una base H2 en memoria y un servidor de correo falso. La sección 9 explica el problema y cómo
+  destrabarlo.</p>
+</div>
+
+<h3>Cumplimiento de la consigna</h3>
+<table>
+  <thead><tr><th style="width:36%">Pedido del Sprint 1</th><th>Dónde está</th><th style="width:15%">Estado</th></tr></thead>
+  <tbody>
+    <tr><td>API de registro: campos, CVU de 22 dígitos, alias de 3 palabras tomadas de un TXT, respuesta sin contraseña, errores 400 y 500</td><td><code>POST /users/register</code> · <code>users-service</code> + <code>account-service</code> · <code>alias-words.txt</code></td><td class="ok">Hecho y probado</td></tr>
+    <tr><td>API de login: token, 404 usuario inexistente, 400 contraseña incorrecta, 500</td><td><code>POST /auth/login</code> · <code>auth-service</code></td><td class="ok">Hecho y probado</td></tr>
+    <tr><td>El token mantiene la sesión al recargar la página</td><td>JWT sin estado, válido 60 minutos; el cliente lo guarda y lo reenvía (caso TC-038)</td><td class="ok">Hecho y probado</td></tr>
+    <tr><td>API de logout que invalida el token recibido en el header</td><td><code>POST /user/logout</code> · lista de tokens invalidados en <code>auth-service</code></td><td class="ok">Hecho y probado</td></tr>
+    <tr><td>Testing exploratorio con notas y organización</td><td><code>docs/testing/testing-exploratorio.md</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Testing kickoff: plan de pruebas</td><td><code>docs/testing/plan-de-pruebas.md</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Testing manual: planilla, clasificación smoke/regresión, ejecución de la suite</td><td><code>docs/testing/casos-de-prueba.xlsx</code></td><td class="ok">Hecho (2 casos bloqueados por Docker)</td></tr>
+    <tr><td>Infraestructura: Git, Docker, microservicios</td><td>Repositorio local con ramas; <code>Dockerfile</code>, <code>docker-compose.yml</code></td><td class="pend">Docker sin ejecutar</td></tr>
+    <tr><td>Diseño de la infraestructura y boceto de la red</td><td><code>docs/infraestructura.md</code> y sección 8</td><td class="ok">Hecho</td></tr>
+    <tr><td>Opcional: recupero de contraseña con link por mail y pantalla para ingresar y repetir la clave</td><td><code>/auth/forgot-password</code>, <code>/auth/reset-password</code>, <code>reset-password.html</code></td><td class="ok">Hecho y probado</td></tr>
+    <tr><td>Opcional: verificación del email con código de 6 dígitos en el primer login</td><td><code>/auth/verify-email</code>, <code>/auth/verify-email/resend</code></td><td class="ok">Hecho y probado</td></tr>
+    <tr><td>Subir a GitLab/GitHub</td><td>El repositorio es local: el remoto y el <code>push</code> quedan a cargo del autor</td><td class="pend">Pendiente</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s2">2. Paso a paso: qué se hizo y con qué</h2>
+
+<p>La tabla sigue el orden real del trabajo. La columna de la derecha dice qué herramienta o framework
+entró en juego en ese momento y para qué.</p>
+
+<table class="step">
+  <thead><tr><th>#</th><th style="width:37%">Qué se hizo</th><th>Herramienta o framework, y para qué</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><strong>Lectura de la consigna y de la guía de stack.</strong> Se decidió usar JWT en lugar de Keycloak (la guía permite ambos), crear los 5 servicios que propone y dar a cada servicio su propia base dentro de un mismo MySQL.</td><td>—</td></tr>
+    <tr><td>2</td><td><strong>Relevamiento del entorno.</strong> Había JDK 21, Git, Eclipse y Docker instalado; no había Maven.</td><td><strong>JDK Temurin 21</strong>: compilar y ejecutar. <strong>Maven Wrapper</strong> (<code>mvnw</code>): se agregó para compilar sin instalar Maven; descarga Maven 3.9.16 la primera vez y garantiza que todos usen la misma versión.</td></tr>
+    <tr><td>3</td><td><strong>Repositorio.</strong> <code>git init</code> en una carpeta nueva, <code>.gitignore</code> y <code>.gitattributes</code>.</td><td><strong>Git</strong>: historial con un commit por etapa. Se trabajó en <code>dev</code>; <code>main</code> y <code>test</code> son las otras ramas que pide la guía.</td></tr>
+    <tr><td>4</td><td><strong>Proyecto Maven multi-módulo.</strong> Un <code>pom.xml</code> padre y un módulo por microservicio.</td><td><strong>Maven</strong>: el POM padre hereda de <code>spring-boot-starter-parent</code> 3.5.16 e importa el BOM de <strong>Spring Cloud</strong> 2025.0.3, así todas las dependencias de todos los módulos tienen versiones compatibles entre sí sin declararlas una por una.</td></tr>
+    <tr><td>5</td><td><strong><code>eureka-server</code>.</strong></td><td><strong>Netflix Eureka Server</strong> (<code>@EnableEurekaServer</code>): registro donde cada servicio anota su dirección al arrancar.</td></tr>
+    <tr><td>6</td><td><strong><code>account-service</code>.</strong> Entidad <code>Account</code>, generadores de CVU y alias, endpoint interno para crear la cuenta.</td><td><strong>Spring Web</strong> (controllers REST), <strong>Spring Data JPA</strong> (entidad y repositorio; crea la tabla sola), <strong>Bean Validation</strong> (validar el body), <strong>Spring Security</strong> (proteger los endpoints). <code>SecureRandom</code> de Java para el CVU y para elegir las palabras del TXT.</td></tr>
+    <tr><td>7</td><td><strong><code>users-service</code>.</strong> Entidades <code>User</code> y <code>Role</code>, registro, código de verificación, token de recupero, mails.</td><td>Lo anterior más <strong>OpenFeign</strong> (llamar a <code>account-service</code> como si fuera una interfaz Java), <strong>BCrypt</strong> de Spring Security (guardar el hash de la contraseña), <strong>Spring Mail</strong> (enviar los correos) y eventos transaccionales de Spring (mandar el mail recién después del <em>commit</em>).</td></tr>
+    <tr><td>8</td><td><strong><code>auth-service</code>.</strong> Login, emisión y validación del token, logout.</td><td><strong>jjwt</strong> (crear y verificar el JWT firmado con HS256), <strong>OpenFeign</strong> con un <code>ErrorDecoder</code> (traducir el 404 y el 400 de <code>users-service</code>), <strong>Spring Data JPA</strong> (lista de tokens invalidados) y <code>@Scheduled</code> (borrar los ya vencidos).</td></tr>
+    <tr><td>9</td><td><strong><code>api-gateway</code>.</strong> Rutas y filtro global de autenticación.</td><td><strong>Spring Cloud Gateway</strong> (rutas <code>lb://servicio</code> resueltas por Eureka) y <strong>WebClient</strong> con <code>@LoadBalanced</code> (preguntarle a <code>auth-service</code> si el token es válido antes de dejar pasar).</td></tr>
+    <tr><td>10</td><td><strong>Manejo de errores</strong> en cada servicio.</td><td><code>@RestControllerAdvice</code> + <code>@ExceptionHandler</code> de <strong>Spring MVC</strong>: una clase global que convierte cada excepción en su código HTTP con un JSON uniforme.</td></tr>
+    <tr><td>11</td><td><strong>Documentación de la API.</strong></td><td><strong>springdoc-openapi</strong>: genera el contrato OpenAPI desde los controllers y sirve Swagger UI. El gateway los unifica en una sola pantalla.</td></tr>
+    <tr><td>12</td><td><strong>Tests automatizados</strong> escritos junto con cada servicio.</td><td><strong>JUnit 5</strong> (ejecutor), <strong>Mockito</strong> (simular dependencias), <strong>AssertJ</strong> (verificaciones), <strong>MockMvc</strong> de Spring Boot Test (peticiones HTTP al servicio completo sin abrir un puerto) y <strong>H2</strong> (base en memoria para no depender de MySQL).</td></tr>
+    <tr><td>13</td><td><strong>Contenedores.</strong> <code>Dockerfile</code>, <code>docker-compose.yml</code>, script de inicialización de MySQL.</td><td><strong>Docker</strong> (una imagen por servicio, compilada en dos etapas) y <strong>Docker Compose</strong> (los 7 contenedores, la red y el volumen). <strong>MySQL 8.4</strong> como base y <strong>MailHog</strong> como servidor de correo de prueba. Validado con <code>docker compose config</code>.</td></tr>
+    <tr><td>14</td><td><strong>Docker no arrancó.</strong> Se diagnosticó la causa y se armó una forma alternativa de levantar todo.</td><td>Perfil de Spring <code>h2</code> (misma aplicación, base <strong>H2</strong> en lugar de MySQL), un servidor SMTP falso en <strong>Python</strong> y scripts de <strong>PowerShell</strong> para arrancar y apagar los 5 servicios.</td></tr>
+    <tr><td>15</td><td><strong>Primera prueba de punta a punta</strong> por el gateway: registro → verificación → login → logout.</td><td><strong>curl</strong> para enviar las peticiones.</td></tr>
+    <tr><td>16</td><td><strong>Testing exploratorio:</strong> 4 sesiones, alrededor de 100 pruebas, 5 defectos.</td><td><strong>curl</strong> y <strong>Python</strong> (peticiones simultáneas, tokens adulterados), logs de los servicios.</td></tr>
+    <tr><td>17</td><td><strong>Corrección de los 5 defectos</strong>, cada uno con su test.</td><td><strong>Bean Validation</strong> (<code>@Pattern</code>, <code>@Email</code>), <strong>Jackson</strong> (rechazar tipos incorrectos), <code>ErrorWebExceptionHandler</code> del gateway, y una entidad JPA nueva para cerrar sesiones al cambiar la clave.</td></tr>
+    <tr><td>18</td><td><strong>Casos de prueba y planilla.</strong> 72 casos con su ficha; se ejecutaron y se registró el resultado.</td><td><strong>Python</strong> (<code>run_test_suite.py</code> ejecuta los casos contra el sistema; <code>build_test_sheet.py</code> arma el <code>.xlsx</code>). Se abrió con <strong>Excel</strong> para comprobar que el archivo es válido.</td></tr>
+    <tr><td>19</td><td><strong>Documentación:</strong> plan de pruebas, infraestructura, diagramas, README y este informe.</td><td>Markdown, SVG para los diagramas y <strong>Chrome</strong> sin interfaz para generar este PDF.</td></tr>
+  </tbody>
+</table>
+
+<div class="box">
+  <p><strong>Sobre Eclipse.</strong> El código no se tipeó dentro de la interfaz de Eclipse: se escribió
+  archivo por archivo y se compiló con Maven Wrapper desde la terminal. El proyecto es un proyecto Maven
+  estándar, así que Eclipse lo abre con <em>File → Import → Maven → Existing Maven Projects</em> (sección
+  10). No se usó Lombok a propósito, para que Eclipse no necesite ningún plugin adicional. La importación
+  en Eclipse no se ejecutó durante este trabajo: es lo primero para comprobar al abrirlo.</p>
+</div>
+
+<h2 id="s3">3. Arquitectura</h2>
+
+<figure>
+  <img src="img/arquitectura-local.svg" alt="Arquitectura y red del entorno local">
+  <figcaption>Los cinco microservicios, la base y el correo dentro de la red interna. El cliente solo ve el gateway.</figcaption>
+</figure>
+
+<table>
+  <thead><tr><th style="width:17%">Servicio</th><th style="width:8%">Puerto</th><th>Responsabilidad</th><th style="width:14%">Base</th></tr></thead>
+  <tbody>
+    <tr><td><code>eureka-server</code></td><td>8761</td><td>Registro de servicios: quién está levantado y en qué dirección.</td><td>—</td></tr>
+    <tr><td><code>api-gateway</code></td><td>8090</td><td>Única entrada. Enruta según la URL y exige un token válido en toda ruta que no sea pública.</td><td>—</td></tr>
+    <tr><td><code>auth-service</code></td><td>8081</td><td>Login, emisión y validación del JWT, logout. Expone los endpoints públicos de verificación de email y recupero de contraseña y los delega en <code>users-service</code>.</td><td><code>dmh_auth</code></td></tr>
+    <tr><td><code>users-service</code></td><td>8082</td><td>Dueño de los datos del usuario: registro, roles, contraseña, códigos, tokens de recupero, envío de mails.</td><td><code>dmh_users</code></td></tr>
+    <tr><td><code>account-service</code></td><td>8083</td><td>Cuenta digital: genera CVU y alias, guarda el saldo.</td><td><code>dmh_accounts</code></td></tr>
+  </tbody>
+</table>
+
+<p>El puerto del gateway es 8090 y no el habitual 8080 porque en esta máquina el 8080 ya está ocupado
+por otro proceso del sistema.</p>
+
+<h2 id="s4">4. Herramientas y frameworks: dónde están y para qué sirven</h2>
+
+<table>
+  <thead><tr><th style="width:19%">Herramienta</th><th style="width:33%">Dónde se ve en el proyecto</th><th>Para qué se usó</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Java 21</strong></td><td>Todo el código. <code>record</code> para los DTO.</td><td>Lenguaje. Los <code>record</code> dan clases de datos inmutables sin escribir getters, y evitan depender de Lombok.</td></tr>
+    <tr><td><strong>Spring Boot 3.5</strong></td><td>Clase <code>*Application</code> y <code>application.yml</code> de cada módulo.</td><td>Arranca cada servicio con servidor web embebido y configuración automática. Cada servicio es un <code>.jar</code> ejecutable.</td></tr>
+    <tr><td><strong>Spring Web (MVC)</strong></td><td>Paquetes <code>controller</code> y <code>exception</code>.</td><td>Endpoints REST (<code>@RestController</code>) y manejo global de errores (<code>@RestControllerAdvice</code>).</td></tr>
+    <tr><td><strong>Bean Validation</strong></td><td><code>RegisterRequest</code>, <code>LoginRequest</code> y demás DTO.</td><td>Validar la entrada con anotaciones (<code>@NotBlank</code>, <code>@Email</code>, <code>@Size</code>, <code>@Pattern</code>). Si algo falla, responde 400 con el detalle por campo.</td></tr>
+    <tr><td><strong>Spring Data JPA</strong> (Hibernate)</td><td>Paquetes <code>model</code> y <code>repository</code>.</td><td>Mapear clases a tablas y consultar sin escribir SQL (<code>findByEmail</code>, <code>existsByCvu</code>). Crea las tablas a partir de las entidades.</td></tr>
+    <tr><td><strong>MySQL 8.4</strong></td><td><code>docker-compose.yml</code>, <code>docker/mysql/init.sql</code>.</td><td>Base relacional del entorno con Docker. Una base por servicio.</td></tr>
+    <tr><td><strong>H2</strong></td><td><code>application-test.yml</code> y <code>application-h2.yml</code>.</td><td>Base en memoria para los tests y para trabajar sin Docker.</td></tr>
+    <tr><td><strong>Spring Security</strong></td><td>Paquete <code>security</code> de cada servicio.</td><td>Cadena de filtros que decide qué rutas son públicas y cuáles exigen autenticación; <code>@PreAuthorize</code> para "solo el dueño o un administrador"; <code>BCryptPasswordEncoder</code> para las contraseñas.</td></tr>
+    <tr><td><strong>JWT (jjwt 0.13)</strong></td><td><code>JwtService</code>, <code>JwtAuthenticationFilter</code>.</td><td>Token firmado que lleva el id del usuario, su email y sus roles. Cada servicio lo verifica con el secreto compartido, sin consultar una sesión en el servidor.</td></tr>
+    <tr><td><strong>Eureka</strong> (Spring Cloud Netflix)</td><td><code>eureka-server</code>; bloque <code>eureka:</code> de cada <code>application.yml</code>.</td><td>Descubrimiento de servicios: nadie tiene direcciones fijas en la configuración, se buscan por nombre.</td></tr>
+    <tr><td><strong>Spring Cloud Gateway</strong></td><td><code>api-gateway</code>: rutas en <code>application.yml</code>, <code>AuthenticationFilter</code>, <code>GatewayErrorHandler</code>.</td><td>Puerta de entrada única: enrutar, validar el token, CORS y errores uniformes.</td></tr>
+    <tr><td><strong>OpenFeign</strong></td><td><code>AccountClient</code> (en users), <code>UsersClient</code> (en auth), <code>InternalFeignConfig</code>.</td><td>Llamadas HTTP entre servicios declaradas como una interfaz Java. Resuelve la dirección por Eureka y agrega la clave interna a cada llamada.</td></tr>
+    <tr><td><strong>Spring Mail</strong></td><td><code>MailService</code> en <code>users-service</code>.</td><td>Enviar el código de verificación y el link de recupero.</td></tr>
+    <tr><td><strong>MailHog</strong></td><td><code>docker-compose.yml</code>.</td><td>Servidor de correo de prueba: atrapa los mails y los muestra en una página web, sin enviar nada de verdad.</td></tr>
+    <tr><td><strong>springdoc-openapi</strong> (Swagger)</td><td><code>OpenApiConfig</code>; anotaciones <code>@Operation</code> en los controllers.</td><td>Documentación navegable de la API, con la posibilidad de probar cada endpoint.</td></tr>
+    <tr><td><strong>JUnit 5, Mockito, AssertJ, MockMvc</strong></td><td><code>src/test</code> de cada módulo.</td><td>Tests unitarios y de integración. Se ejecutan con <code>mvnw verify</code>.</td></tr>
+    <tr><td><strong>Maven + Maven Wrapper</strong></td><td><code>pom.xml</code>, <code>mvnw</code>, <code>mvnw.cmd</code>.</td><td>Dependencias, compilación, tests y empaquetado.</td></tr>
+    <tr><td><strong>Docker y Compose</strong></td><td><code>Dockerfile</code>, <code>docker-compose.yml</code>, <code>.env.example</code>.</td><td>Empaquetar y levantar todo el entorno con un comando.</td></tr>
+    <tr><td><strong>Git</strong></td><td>Historial del repositorio.</td><td>Control de versiones, con un commit por etapa (<code>git log --oneline</code>).</td></tr>
+    <tr><td><strong>Python y PowerShell</strong></td><td>Carpeta <code>scripts</code>.</td><td>Auxiliares, fuera de la aplicación: correo falso, arranque local, ejecución de casos y armado de la planilla.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s5">5. Cómo funciona cada historia</h2>
+
+<h3>Registro — <code>POST /users/register</code></h3>
+<ol>
+  <li>El <strong>gateway</strong> recibe la petición. La ruta es pública, así que no pide token, y la envía a <code>users-service</code> (lo ubica en Eureka).</li>
+  <li><strong>Bean Validation</strong> revisa el body. Si algo está mal responde 400 con el detalle por campo.</li>
+  <li><code>UserService</code> verifica que el email y el DNI no existan (400 si existen), calcula el hash <strong>BCrypt</strong> de la contraseña, asigna el rol <code>ROLE_USER</code>, genera el código de verificación y guarda el usuario con <strong>JPA</strong>.</li>
+  <li>Con <strong>Feign</strong> llama a <code>account-service</code>, que genera un CVU de 22 dígitos y un alias de 3 palabras del archivo <code>alias-words.txt</code>, comprueba que no estén repetidos y guarda la cuenta.</li>
+  <li>Todo el paso 3 y 4 ocurre dentro de una transacción (<code>@Transactional</code>): si <code>account-service</code> falla, el usuario no queda guardado y se responde 500.</li>
+  <li>Después del <em>commit</em>, <strong>Spring Mail</strong> envía el código de 6 dígitos.</li>
+  <li>Respuesta 201 con los datos del usuario, el CVU y el alias. El DTO de respuesta no tiene campo de contraseña.</li>
+</ol>
+
+<h3>Login — <code>POST /auth/login</code></h3>
+<ol>
+  <li>El gateway envía la petición a <code>auth-service</code> (ruta pública).</li>
+  <li><code>AuthService</code> pide las credenciales a <code>users-service</code> por <strong>Feign</strong>. Si el usuario no existe, el <code>ErrorDecoder</code> convierte el 404 en la misma respuesta 404 para el cliente.</li>
+  <li><strong>BCrypt</strong> compara la contraseña con el hash: si no coincide, 400. Si el email no fue verificado, 403.</li>
+  <li><strong>jjwt</strong> emite el token, válido por 60 minutos. Como el token no depende de una sesión guardada en el servidor, recargar la página no cierra la sesión: alcanza con que el frontend lo conserve y lo envíe en cada petición.</li>
+</ol>
+
+<h3>Logout — <code>POST /user/logout</code></h3>
+<ol>
+  <li>El token viaja en el header <code>Authorization: Bearer …</code>. El gateway lo valida y pasa la petición a <code>auth-service</code>.</li>
+  <li><code>auth-service</code> guarda el identificador del token (<code>jti</code>) en la tabla de tokens invalidados y responde 200.</li>
+  <li>Desde ese momento, el filtro del gateway rechaza ese token con 401, porque en cada petición le pregunta a <code>auth-service</code> si el token sigue siendo válido. Un JWT no se puede "borrar"; por eso hace falta esa lista.</li>
+</ol>
+
+<h3>Opcionales</h3>
+<ul>
+  <li><strong>Verificación de email:</strong> sin verificar, el login responde 403. <code>POST /auth/verify-email</code> con el código lo habilita. El código vence a los 15 minutos y se bloquea tras 5 intentos fallidos; se puede pedir otro.</li>
+  <li><strong>Recupero de contraseña:</strong> <code>POST /auth/forgot-password</code> envía un mail con un link a <code>reset-password.html</code>, una pantalla que pide la contraseña nueva dos veces. El link vence a los 30 minutos y sirve una sola vez. En la base se guarda solo el hash del token. Cambiar la contraseña cierra todas las sesiones abiertas del usuario.</li>
+</ul>
+
+<h2 id="s6">6. Decisiones de seguridad</h2>
+<ul>
+  <li><strong>Contraseñas</strong>: solo se guarda el hash BCrypt. Ninguna respuesta las incluye.</li>
+  <li><strong>Roles</strong>: entidad <code>Rol</code> asociada al usuario (<code>ROLE_USER</code>, <code>ROLE_ADMIN</code>). Los datos de un usuario y su cuenta solo los puede ver su dueño o un administrador (403 para el resto). No se incluyó un alta de administradores: hoy todo usuario registrado es <code>ROLE_USER</code>.</li>
+  <li><strong>Endpoints internos</strong> (<code>/internal/**</code>): no tienen ruta en el gateway y exigen una clave compartida entre servicios.</li>
+  <li><strong>Defensa en dos capas</strong>: el gateway valida el token contra <code>auth-service</code> y, además, cada servicio vuelve a verificar la firma y los permisos.</li>
+  <li><strong>Secretos</strong>: se leen de variables de entorno. Los valores por defecto del código son solo para desarrollo local y hay que cambiarlos en cualquier otro entorno.</li>
+  <li><strong>Códigos de respuesta del login</strong>: se respetó la consigna (404 y 400). Eso permite distinguir si un email está registrado; está anotado como observación para conversar con el negocio.</li>
+</ul>
+
+<h2 id="s7">7. Testing</h2>
+
+<table>
+  <thead><tr><th style="width:21%">Nivel</th><th>Qué se hizo</th><th style="width:26%">Resultado</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Tests automatizados</strong> (JUnit)</td><td>Unitarios de las reglas de negocio y de integración de cada servicio completo (HTTP, seguridad y base H2), con los otros servicios simulados. <code>mvnw verify</code>.</td><td class="ok">125 de 125 pasan<br><span style="font-weight:400;color:#475569">account 56 · users 30 · auth 25 · gateway 13 · eureka 1</span></td></tr>
+    <tr><td><strong>Casos de prueba de sistema</strong></td><td>72 casos con precondiciones, pasos y resultado esperado, ejecutados contra los 5 servicios levantados, entrando por el gateway. Clasificados en suite de humo (9) y de regresión (72).</td><td><span class="ok">70 pasan</span>, <span class="pend">2 bloqueados</span> (los que requieren Docker y MySQL)</td></tr>
+    <tr><td><strong>Exploratorio</strong></td><td>4 sesiones con charter: registro, login y token, opcionales de mail, gateway y resiliencia. Incluyó peticiones simultáneas, tokens adulterados y apagar servicios.</td><td>5 defectos, todos <span class="ok">corregidos y verificados</span></td></tr>
+  </tbody>
+</table>
+
+<h3>Defectos encontrados en el exploratorio</h3>
+<table>
+  <thead><tr><th style="width:12%">ID</th><th style="width:10%">Severidad</th><th>Defecto</th><th style="width:36%">Corrección</th></tr></thead>
+  <tbody>
+    <tr><td>DEF-004</td><td>Alta</td><td>Cambiar la contraseña no cerraba las sesiones abiertas: quien recuperaba una cuenta robada no lograba echar al intruso.</td><td><code>auth-service</code> registra el momento del cambio y rechaza los tokens anteriores.</td></tr>
+    <tr><td>DEF-001</td><td>Media</td><td>El registro aceptaba emails sin dominio completo (<code>a@b</code>).</td><td>Validación más estricta del email.</td></tr>
+    <tr><td>DEF-003</td><td>Media</td><td>Nombre y apellido aceptaban cualquier carácter, incluido HTML.</td><td>Solo letras de cualquier idioma, espacios, apóstrofes y guiones.</td></tr>
+    <tr><td>DEF-002</td><td>Baja</td><td>El DNI enviado como número JSON se convertía a texto en silencio.</td><td>Se rechaza con 400.</td></tr>
+    <tr><td>DEF-005</td><td>Baja</td><td>Con un servicio caído, el gateway respondía 500 con un formato distinto y sin mensaje.</td><td>Responde 503 con el formato común.</td></tr>
+  </tbody>
+</table>
+
+<p>Dos comprobaciones de resiliencia que salieron bien: con <code>account-service</code> apagado, el
+registro responde 500 y <strong>no deja un usuario a medias ni envía el mail</strong>; con
+<code>auth-service</code> apagado, el gateway responde 503 y no deja pasar peticiones sin validar.</p>
+
+<h2 id="s8">8. Infraestructura propuesta</h2>
+
+<figure>
+  <img src="img/infraestructura-propuesta.svg" alt="Boceto de la infraestructura propuesta">
+  <figcaption>Boceto para un entorno productivo: red, servidores, base de datos y almacenamiento.</figcaption>
+</figure>
+
+<p>En el entorno local todo corre en una red interna de Docker con un único puerto publicado para la API
+(sección 3). Para producción se propone separar tres subredes: una pública con el balanceador (HTTPS),
+una privada con los servicios duplicados en dos zonas, y una de datos con MySQL primario y réplica, más
+almacenamiento de objetos para backups y logs. El detalle y la justificación de cada componente están en
+<code>docs/infraestructura.md</code>.</p>
+
+<h2 id="s9">9. Problemas del entorno y pendientes</h2>
+
+<table>
+  <thead><tr><th style="width:27%">Problema</th><th>Causa y qué se hizo</th><th style="width:27%">Qué falta</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Docker Desktop no arranca</strong></td><td>Primero falló por archivos de socket residuales de una ejecución anterior; se renombraron las carpetas que los contenían (<code>AppData\Local\Docker\run</code> y <code>docker-secrets-engine</code>) para que Docker las recree. Superado eso, el log mostró la causa de fondo: <em>"Virtual Machine Platform not enabled"</em>. No hay distribuciones WSL instaladas, o sea que Docker nunca llegó a funcionar en esta máquina.</td><td>Ejecutar como administrador <code>wsl.exe --install --no-distribution</code>, reiniciar y abrir Docker Desktop. Después: <code>docker compose up -d --build</code> y la suite con <code>--mailhog</code>.</td></tr>
+    <tr><td><strong>Los servicios Java no arrancaban</strong> (<em>Unable to establish loopback connection</em>)</td><td>En el contexto en que se ejecutaron fallan los sockets de dominio Unix de Windows, que Java usa internamente (el mismo tipo de socket que le fallaba a Docker). Se resolvió con el argumento de JVM <code>-Djdk.net.unixdomain.tmpdir=Q:\no-existe</code>, que hace que Java use TCP.</td><td>Si al ejecutar desde Eclipse aparece ese error, agregar ese argumento en <em>VM arguments</em>. Si no aparece, no hace falta.</td></tr>
+    <tr><td><strong>Puerto 8080 ocupado</strong></td><td>Lo usa un proceso del sistema. El gateway se configuró en el 8090.</td><td>—</td></tr>
+    <tr><td><strong>Sin MySQL local</strong></td><td>Las pruebas de sistema se hicieron con H2 en modo de compatibilidad MySQL.</td><td>Repetir la suite contra MySQL (casos TC-086 y TC-087).</td></tr>
+  </tbody>
+</table>
+
+<p>Otros pendientes: crear el repositorio remoto y hacer <code>push</code> de las tres ramas; importar el
+proyecto en Eclipse y confirmar que compila ahí; y las cuatro observaciones del testing exploratorio
+(límite de intentos de login, respuesta unificada del login, formato del teléfono, y no publicar nunca
+los puertos internos de los servicios).</p>
+
+<h2 id="s10">10. Cómo abrirlo y ejecutarlo</h2>
+
+<h3>En Eclipse</h3>
+<ol>
+  <li><em>File → Import → Maven → Existing Maven Projects</em>. Elegir la carpeta <code>DigitalMoneyHouse</code> y dejar marcados los 6 proyectos.</li>
+  <li>Verificar en <em>Window → Preferences → Java → Installed JREs</em> que el JRE sea 17 o superior (el instalado es el 21).</li>
+  <li>Para cada servicio, botón derecho sobre su clase <code>*Application</code> → <em>Run As → Java Application</em>. Primero <code>EurekaServerApplication</code>; al final <code>ApiGatewayApplication</code>.</li>
+  <li>Sin Docker: en <em>Run Configurations → Arguments → VM arguments</em> de <code>auth-service</code>, <code>users-service</code> y <code>account-service</code>, agregar <code>-Dspring.profiles.active=h2</code>.</li>
+  <li>Para correr los tests: botón derecho sobre un proyecto → <em>Run As → JUnit Test</em>.</li>
+</ol>
+
+<h3>Desde la terminal</h3>
+<pre>.\mvnw.cmd verify                      # compila y corre los 125 tests
+.\scripts\start-local.ps1              # levanta todo sin Docker (perfil h2)
+python scripts\run_test_suite.py       # ejecuta los 72 casos de prueba
+.\scripts\stop-local.ps1               # apaga todo
+
+docker compose up -d --build           # todo con Docker, cuando esté disponible</pre>
+
+<p>Con el sistema levantado: API en <code>http://localhost:8090</code>, Swagger UI en
+<code>http://localhost:8090/swagger-ui.html</code> y panel de Eureka en <code>http://localhost:8761</code>.</p>
+
+<h3>Archivos de la entrega</h3>
+<table>
+  <thead><tr><th style="width:42%">Archivo</th><th>Contenido</th></tr></thead>
+  <tbody>
+    <tr><td><code>README.md</code></td><td>Cómo levantar el proyecto, tabla de endpoints, problemas conocidos.</td></tr>
+    <tr><td><code>docs/informe-sprint-1.pdf</code></td><td>Este informe.</td></tr>
+    <tr><td><code>docs/infraestructura.md</code></td><td>Diseño de la infraestructura, red y componentes, con los dos diagramas.</td></tr>
+    <tr><td><code>docs/testing/plan-de-pruebas.md</code></td><td>Cómo escribir un caso, cómo reportar un defecto, criterios de smoke y de regresión.</td></tr>
+    <tr><td><code>docs/testing/casos-de-prueba.xlsx</code></td><td>Los 72 casos, su suite y el resultado de la ejecución.</td></tr>
+    <tr><td><code>docs/testing/testing-exploratorio.md</code></td><td>Sesiones, notas, defectos y observaciones.</td></tr>
+  </tbody>
+</table>
+
+</body>
+</html>
