@@ -22,3 +22,7 @@ bin/
 # SO
 Thumbs.db
 .DS_Store
+
+# Salida del SMTP falso (scripts/fake_smtp.py)
+mails.jsonl
+logs/

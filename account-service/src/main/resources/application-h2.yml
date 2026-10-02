@@ -1,0 +1,12 @@
+# Perfil "h2": permite levantar el servicio SIN Docker ni MySQL, con una base H2 en memoria
+# (modo de compatibilidad MySQL). Los datos se pierden al apagar el servicio.
+# Uso: -Dspring.profiles.active=h2   (o SPRING_PROFILES_ACTIVE=h2)
+spring:
+  datasource:
+    url: jdbc:h2:mem:dmh_accounts;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
