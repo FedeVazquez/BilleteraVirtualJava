@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" font-family="Segoe UI, Arial, sans-serif" font-size="13">
+  <title>Digital Money House - Arquitectura y red del entorno local</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrowDash" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="600" fill="#ffffff"/>
+
+  <!-- red interna -->
+  <rect x="200" y="30" width="780" height="550" rx="14" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" stroke-dasharray="7 5"/>
+  <text x="216" y="52" font-weight="600" fill="#334155">Red interna Docker "dmh-net" (bridge) — los contenedores se ven entre sí por nombre</text>
+
+  <!-- cliente -->
+  <rect x="16" y="250" width="140" height="80" rx="8" fill="#fff7ed" stroke="#c2410c" stroke-width="1.5"/>
+  <text x="86" y="280" text-anchor="middle" font-weight="600" fill="#7c2d12">Cliente</text>
+  <text x="86" y="298" text-anchor="middle" fill="#7c2d12" font-size="12">navegador, frontend,</text>
+  <text x="86" y="314" text-anchor="middle" fill="#7c2d12" font-size="12">Postman</text>
+
+  <!-- eureka -->
+  <rect x="226" y="80" width="170" height="74" rx="8" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="311" y="106" text-anchor="middle" font-weight="600" fill="#4c1d95">eureka-server</text>
+  <text x="311" y="124" text-anchor="middle" fill="#4c1d95" font-size="12">:8761 · Service Discovery</text>
+  <text x="311" y="140" text-anchor="middle" fill="#4c1d95" font-size="12">registro de instancias</text>
+
+  <!-- gateway -->
+  <rect x="226" y="250" width="170" height="80" rx="8" fill="#eff6ff" stroke="#1d4ed8" stroke-width="2"/>
+  <text x="311" y="278" text-anchor="middle" font-weight="600" fill="#1e3a8a">api-gateway</text>
+  <text x="311" y="296" text-anchor="middle" fill="#1e3a8a" font-size="12">:8090 · Spring Cloud Gateway</text>
+  <text x="311" y="312" text-anchor="middle" fill="#1e3a8a" font-size="12">rutas + validación de token</text>
+
+  <!-- servicios -->
+  <g fill="#ecfdf5" stroke="#047857" stroke-width="1.5">
+    <rect x="450" y="70" width="180" height="84" rx="8"/>
+    <rect x="450" y="250" width="180" height="84" rx="8"/>
+    <rect x="450" y="430" width="180" height="84" rx="8"/>
+  </g>
+  <g text-anchor="middle" fill="#064e3b">
+    <text x="540" y="98" font-weight="600">auth-service</text>
+    <text x="540" y="116" font-size="12">:8081 · login, logout, JWT</text>
+    <text x="540" y="132" font-size="12">lista de tokens invalidados</text>
+    <text x="540" y="278" font-weight="600">users-service</text>
+    <text x="540" y="296" font-size="12">:8082 · registro, roles,</text>
+    <text x="540" y="312" font-size="12">códigos y contraseñas</text>
+    <text x="540" y="458" font-weight="600">account-service</text>
+    <text x="540" y="476" font-size="12">:8083 · cuenta digital,</text>
+    <text x="540" y="492" font-size="12">CVU y alias (TXT)</text>
+  </g>
+
+  <!-- mysql -->
+  <rect x="790" y="60" width="170" height="464" rx="10" fill="#fefce8" stroke="#a16207" stroke-width="1.5"/>
+  <text x="875" y="84" text-anchor="middle" font-weight="600" fill="#713f12">mysql (MySQL 8.4)</text>
+  <g fill="#ffffff" stroke="#a16207" stroke-width="1.2">
+    <rect x="806" y="96" width="138" height="40" rx="6"/>
+    <rect x="806" y="272" width="138" height="40" rx="6"/>
+    <rect x="806" y="452" width="138" height="40" rx="6"/>
+  </g>
+  <g text-anchor="middle" fill="#713f12" font-size="12">
+    <text x="875" y="121">base dmh_auth</text>
+    <text x="875" y="297">base dmh_users</text>
+    <text x="875" y="477">base dmh_accounts</text>
+    <text x="875" y="372">una base por servicio:</text>
+    <text x="875" y="388">ninguno lee las tablas</text>
+    <text x="875" y="404">de otro</text>
+    <text x="875" y="512" font-weight="600">volumen mysql-data</text>
+  </g>
+
+  <!-- mailhog -->
+  <rect x="648" y="168" width="134" height="60" rx="8" fill="#fdf2f8" stroke="#be185d" stroke-width="1.5"/>
+  <text x="715" y="190" text-anchor="middle" font-weight="600" fill="#831843">mailhog</text>
+  <text x="715" y="206" text-anchor="middle" fill="#831843" font-size="11">SMTP :1025</text>
+  <text x="715" y="220" text-anchor="middle" fill="#831843" font-size="11">bandeja web :8025</text>
+
+  <!-- flechas HTTP -->
+  <g stroke="#334155" stroke-width="1.6" fill="none" marker-end="url(#arrow)">
+    <line x1="156" y1="290" x2="224" y2="290"/>
+    <polyline points="396,290 422,290 422,112 448,112"/>
+    <line x1="396" y1="290" x2="448" y2="290"/>
+    <polyline points="422,290 422,472 448,472"/>
+    <line x1="540" y1="154" x2="540" y2="248"/>
+    <line x1="540" y1="334" x2="540" y2="428"/>
+    <line x1="630" y1="116" x2="804" y2="116"/>
+    <line x1="630" y1="292" x2="804" y2="292"/>
+    <line x1="630" y1="472" x2="804" y2="472"/>
+    <line x1="606" y1="250" x2="652" y2="230"/>
+  </g>
+  <g fill="#334155" font-size="11.5">
+    <text x="160" y="272">HTTP</text>
+    <text x="160" y="284" font-size="10.5">JSON</text>
+    <text x="532" y="190" text-anchor="end">Feign:</text>
+    <text x="532" y="204" text-anchor="end">credenciales</text>
+    <text x="532" y="218" text-anchor="end">y códigos</text>
+    <text x="532" y="376" text-anchor="end">Feign:</text>
+    <text x="532" y="390" text-anchor="end">crear cuenta</text>
+    <text x="668" y="108">JDBC / JPA</text>
+    <text x="668" y="284">JDBC / JPA</text>
+    <text x="668" y="464">JDBC / JPA</text>
+    <text x="556" y="240" font-size="11">SMTP</text>
+    <text x="404" y="194" text-anchor="end">lb://</text>
+    <text x="404" y="400" text-anchor="end">lb://</text>
+  </g>
+
+  <!-- eureka punteado -->
+  <g stroke="#7c3aed" stroke-width="1.4" fill="none" stroke-dasharray="5 4" marker-end="url(#arrowDash)">
+    <line x1="311" y1="250" x2="311" y2="156"/>
+    <line x1="450" y1="90" x2="398" y2="100"/>
+  </g>
+  <text x="318" y="208" fill="#6d28d9" font-size="11.5">registro y</text>
+  <text x="318" y="222" fill="#6d28d9" font-size="11.5">descubrimiento</text>
+
+  <!-- leyenda -->
+  <g font-size="12" fill="#334155">
+    <text x="226" y="398" font-weight="600">Referencias</text>
+    <line x1="226" y1="416" x2="262" y2="416" stroke="#334155" stroke-width="1.6" marker-end="url(#arrow)"/>
+    <text x="270" y="420">llamada síncrona</text>
+    <line x1="226" y1="440" x2="262" y2="440" stroke="#7c3aed" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arrowDash)"/>
+    <text x="270" y="444">Eureka (los 4 servicios)</text>
+    <text x="226" y="472">Único puerto publicado para</text>
+    <text x="226" y="488">la API: 8090 (gateway).</text>
+    <text x="226" y="510">auth, users y account no</text>
+    <text x="226" y="526">publican puertos: solo se</text>
+    <text x="226" y="542">llega a ellos por el gateway.</text>
+  </g>
+</svg>
