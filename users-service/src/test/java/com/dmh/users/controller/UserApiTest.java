@@ -122,6 +122,37 @@ class UserApiTest {
     }
 
     @Test
+    void registroRechazaEmailSinDominioCompletoNombreConSimbolosYDniNumerico() throws Exception {
+        String body = """
+                {"firstName": "<script>alert(1)</script>", "lastName": "Pérez", "dni": "30123456",
+                 "email": "a@b", "phone": "+5491122334455", "password": "Clave1234"}
+                """;
+        mockMvc.perform(post("/users/register").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.details", hasItem(startsWith("firstName:"))))
+                .andExpect(jsonPath("$.details", hasItem(startsWith("email:"))));
+
+        // el DNI debe viajar como texto: un numero JSON se rechaza
+        String dniNumerico = """
+                {"firstName": "Juan", "lastName": "Pérez", "dni": 30123456,
+                 "email": "juan@mail.com", "phone": "+5491122334455", "password": "Clave1234"}
+                """;
+        mockMvc.perform(post("/users/register").contentType(MediaType.APPLICATION_JSON).content(dniNumerico))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void registroAceptaNombresConAcentosEniesApostrofesYGuiones() throws Exception {
+        String body = """
+                {"firstName": "María José", "lastName": "Núñez O'Higgins-Peña", "dni": "30123456",
+                 "email": "maria@mail.com", "phone": "+5491122334455", "password": "Clave1234"}
+                """;
+        mockMvc.perform(post("/users/register").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.lastName").value("Núñez O'Higgins-Peña"));
+    }
+
+    @Test
     void registroConJsonMalFormadoDevuelve400() throws Exception {
         mockMvc.perform(post("/users/register").contentType(MediaType.APPLICATION_JSON).content("{esto no es json"))
                 .andExpect(status().isBadRequest());

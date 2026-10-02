@@ -10,11 +10,13 @@ public record RegisterRequest(
         @Schema(example = "Juan")
         @NotBlank(message = "El nombre es obligatorio")
         @Size(max = 60, message = "El nombre no puede superar los 60 caracteres")
+        @Pattern(regexp = NAME_REGEX, message = "El nombre solo puede tener letras, espacios, apóstrofes y guiones")
         String firstName,
 
         @Schema(example = "Pérez")
         @NotBlank(message = "El apellido es obligatorio")
         @Size(max = 60, message = "El apellido no puede superar los 60 caracteres")
+        @Pattern(regexp = NAME_REGEX, message = "El apellido solo puede tener letras, espacios, apóstrofes y guiones")
         String lastName,
 
         @Schema(example = "30123456")
@@ -24,7 +26,8 @@ public record RegisterRequest(
 
         @Schema(example = "juan.perez@mail.com")
         @NotBlank(message = "El email es obligatorio")
-        @Email(message = "El email no tiene un formato válido")
+        // El regexp se suma a la validacion estandar para exigir un dominio con punto (rechaza "a@b").
+        @Email(regexp = ".+@.+\\..+", message = "El email no tiene un formato válido")
         @Size(max = 120, message = "El email no puede superar los 120 caracteres")
         String email,
 
@@ -38,4 +41,7 @@ public record RegisterRequest(
         // BCrypt solo usa los primeros 72 bytes: se limita para no aceptar claves que se truncan.
         @Size(min = 8, max = 72, message = "La contraseña debe tener entre 8 y 72 caracteres")
         String password) {
+
+    /** Letras de cualquier idioma (incluye acentos y ñ), espacios, punto, apóstrofe y guion. Vacío lo cubre @NotBlank. */
+    private static final String NAME_REGEX = "^[\\p{L} .'-]*$";
 }
