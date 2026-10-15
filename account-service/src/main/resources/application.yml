@@ -44,6 +44,8 @@ app:
     # sobreescriben con las variables de entorno JWT_SECRET e INTERNAL_API_KEY.
     secret: ${JWT_SECRET:dmh-dev-secret-cambiar-en-produccion-0123456789}
   internal-api-key: ${INTERNAL_API_KEY:dmh-dev-internal-key}
+  # Zona horaria para interpretar los filtros por fecha de la actividad.
+  timezone: ${APP_TIMEZONE:America/Argentina/Buenos_Aires}
   cards:
     # Clave de la huella HMAC de los numeros de tarjeta (detecta tarjetas repetidas sin guardar el numero).
     fingerprint-key: ${CARD_FINGERPRINT_KEY:dmh-dev-card-fingerprint-key}
