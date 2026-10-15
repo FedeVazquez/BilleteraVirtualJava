@@ -49,7 +49,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleBeanValidation(MethodArgumentNotValidException ex,
             HttpServletRequest request) {
         List<String> details = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                // Un error de conversion (texto donde va un numero, fecha invalida) trae un mensaje tecnico
+                // con nombres de clases Java: se reemplaza por uno generico.
+                .map(error -> error.getField() + ": "
+                        + (error.isBindingFailure() ? "tiene un valor inválido" : error.getDefaultMessage()))
                 .sorted()
                 .toList();
         return build(HttpStatus.BAD_REQUEST, "Datos de entrada inválidos", request, details);
