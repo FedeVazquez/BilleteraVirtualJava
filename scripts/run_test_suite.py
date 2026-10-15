@@ -216,6 +216,22 @@ RESTASSURED = {
     "TC-128": "CardApiTest.datosFaltantes", "TC-129": "CardApiTest.eliminarTarjeta",
     "TC-130": "CardApiTest.eliminarInexistente", "TC-131": "CardApiTest.tarjetasAjenas",
     "TC-132": "CardApiTest.noExponeDatosSensibles",
+    "TC-170": "TransferApiTest.transferirPorAlias",
+    "TC-171": "TransferApiTest.transferirPorCvu",
+    "TC-172": "TransferApiTest.fondosInsuficientes",
+    "TC-173": "TransferApiTest.destinoInexistente",
+    "TC-174": "TransferApiTest.mismaCuenta",
+    "TC-175": "TransferApiTest.cuentaAjena",
+    "TC-176": "TransferApiTest.destinatarioVeLaTransferencia",
+    "TC-177": "TransferApiTest.idempotencia",
+    "TC-178": "TransferApiTest.montosInvalidos",
+    "TC-180": "TransferApiTest.ultimosDestinatarios",
+    "TC-181": "TransferApiTest.destinatariosAjenos",
+    "TC-182": "TransferApiTest.sinDestinatarios",
+    "TC-190": "TransferApiTest.comprobantePdf",
+    "TC-191": "TransferApiTest.comprobanteAjeno",
+    "TC-183": "TransferApiTest.claveReutilizada",
+    "TC-184": "TransferApiTest.cvuConEspacios",
     "TC-104": "ActivityApiTest.ultimosCinco",
     "TC-140": "ActivityApiTest.actividadOrdenada",
     "TC-141": "ActivityApiTest.actividadVacia",
@@ -242,6 +258,7 @@ STORY_SPRINT = {
     "HU1 Registro": "1", "HU2 Login": "1", "HU3 Logout": "1", "Opcional: verificación de email": "1",
     "Opcional: recupero de contraseña": "1", "Infraestructura": "1",
     "S2 Dashboard": "2", "S2 Mi perfil": "2", "S2 Tarjetas": "2",
+    "S4 Transferir dinero": "4", "S4 Opcional: comprobante y destinatarios": "4",
     "S3 Mi actividad": "3", "S3 Ingreso de dinero": "3", "S3 Opcional: filtros": "3",
 }
 
@@ -877,11 +894,16 @@ def tc081():
     return "HTTP 404 en ambos"
 
 
-@case("TC-082", INF, "Los endpoints internos exigen la clave interna", "Acceso directo al puerto de users-service (sin gateway).",
+@case("TC-082", INF, "Los endpoints internos exigen la clave interna", "Acceso directo al puerto de users-service (sin gateway). Con Docker Compose ese puerto no se publica.",
       "GET :8082/internal/users/credentials?email=... sin el header X-Internal-Api-Key y con una clave incorrecta.",
-      "HTTP 401 en ambos.", "Seguridad", "Alta", REGRESSION, "UserApiTest.losEndpointsInternosExigenLaClaveInterna")
+      "HTTP 401 en ambos (o el puerto ni siquiera es alcanzable).", "Seguridad", "Alta", REGRESSION, "UserApiTest.losEndpointsInternosExigenLaClaveInterna")
 def tc082():
     path = "/internal/users/credentials?email=a@mail.com"
+    try:
+        urllib.request.urlopen(ARGS.users_direct + "/actuator/health", timeout=5).close()
+    except (urllib.error.URLError, ConnectionError):
+        # Con Docker Compose users-service no publica su puerto: ni siquiera es alcanzable desde afuera.
+        return f"{ARGS.users_direct} no es alcanzable desde afuera de la red interna (puerto no publicado)"
     expect_status(api("GET", path, base=ARGS.users_direct), 401)
     expect_status(api("GET", path, base=ARGS.users_direct, headers={"X-Internal-Api-Key": "clave-incorrecta"}), 401)
     return "sin clave: HTTP 401; clave incorrecta: HTTP 401"
@@ -1536,6 +1558,251 @@ def tc163():
     response = expect_status(api("GET", base + "?minAmount=abc", token=token), 400)
     check("java." not in response.text, f"el mensaje expone clases internas: {response.text}")
     return "HTTP 400 en los tres; " + response.json["details"][0]
+
+
+# ---- Sprint 4: transferencias
+
+S4_TRANSFER = "S4 Transferir dinero"
+S4_OPTIONAL = "S4 Opcional: comprobante y destinatarios"
+
+
+def user_with_balance(amount):
+    account_id, token, card_id = user_with_card()
+    deposit(account_id, token, card_id, amount)
+    return account_id, token
+
+
+def transfer(account_id, token, destination, amount, headers=None):
+    return api("POST", f"/accounts/{account_id}/transferences",
+               {"destination": destination, "amount": amount, "description": "Prueba"}, token=token, headers=headers)
+
+
+@case("TC-170", S4_TRANSFER, "Transferir dinero por alias", "A con $1.000 de saldo; B registrado.",
+      "Con el token de A, POST /accounts/{accountId de A}/transferences con {\"destination\": alias de B, \"amount\": 250.50}.",
+      "HTTP 200 con el movimiento TRANSFER_OUT y los datos de B (CVU, alias y titular). Saldos: A $749.50, B $250.50.",
+      "Positivo", "Alta", SMOKE, "Sprint4ApiTest.transferirPorAliasDevuelve200YMueveElDineroEntreLasDosCuentas")
+def tc170():
+    account_a, token_a = user_with_balance(1000)
+    _, user_b, token_b = logged_user()
+    out = expect_status(transfer(account_a, token_a, user_b["alias"], 250.50), 200).json
+    check(out["type"] == "TRANSFER_OUT" and out["counterpart"]["cvu"] == user_b["cvu"] and out["counterpart"].get("name"),
+          f"movimiento: {out}")
+    balances = (balance_of(account_a, token_a), balance_of(user_b["accountId"], token_b))
+    check(balances == (749.50, 250.50), f"saldos: {balances}")
+    return f"HTTP 200 a {out['counterpart']['name']}; saldos A={balances[0]}, B={balances[1]}"
+
+
+@case("TC-171", S4_TRANSFER, "Transferir dinero por CVU", "A con $100; B registrado.",
+      "Transferir $100 a B usando su CVU de 22 dígitos.", "HTTP 200. A queda en $0 y B en $100.", "Positivo", "Alta",
+      REGRESSION, "Sprint4ApiTest.transferirPorCvuDevuelve200")
+def tc171():
+    account_a, token_a = user_with_balance(100)
+    _, user_b, token_b = logged_user()
+    expect_status(transfer(account_a, token_a, user_b["cvu"], 100), 200)
+    balances = (balance_of(account_a, token_a), balance_of(user_b["accountId"], token_b))
+    check(balances == (0, 100), f"saldos: {balances}")
+    return f"HTTP 200; saldos {balances}"
+
+
+@case("TC-172", S4_TRANSFER, "Fondos insuficientes", "A con $100; B registrado.", "Transferir $100.01 a B.",
+      "HTTP 410 (fondos insuficientes). Los saldos no cambian.", "Negativo", "Alta", SMOKE,
+      "Sprint4ApiTest.sinFondosSuficientesDevuelve410YNoMueveDinero")
+def tc172():
+    account_a, token_a = user_with_balance(100)
+    _, user_b, token_b = logged_user()
+    response = expect_status(transfer(account_a, token_a, user_b["alias"], 100.01), 410)
+    balances = (balance_of(account_a, token_a), balance_of(user_b["accountId"], token_b))
+    check(balances == (100, 0), f"saldos: {balances}")
+    return f"HTTP 410: {response.message}"
+
+
+@case("TC-173", S4_TRANSFER, "Cuenta destino inexistente", "A con saldo.",
+      "Transferir a un alias inexistente y a un CVU inexistente.", "HTTP 400 (cuenta inexistente) en ambos.",
+      "Negativo", "Alta", REGRESSION, "Sprint4ApiTest.unaCuentaDestinoInexistenteDevuelve400")
+def tc173():
+    account_a, token_a = user_with_balance(100)
+    first = expect_status(transfer(account_a, token_a, "no.existe.nadie", 10), 400)
+    expect_status(transfer(account_a, token_a, "0000000000000000000000", 10), 400)
+    return f"HTTP 400: {first.message}"
+
+
+@case("TC-174", S4_TRANSFER, "Transferir a la misma cuenta", "A con saldo.", "Transferir a su propio alias.",
+      "HTTP 400.", "Negativo", "Media", REGRESSION, "Sprint4ApiTest.transferirALaMismaCuentaDevuelve400")
+def tc174():
+    account_a, token_a = user_with_balance(100)
+    alias = expect_status(api("GET", f"/accounts/{account_a}", token=token_a), 200).json["alias"]
+    response = expect_status(transfer(account_a, token_a, alias, 10), 400)
+    return f"HTTP 400: {response.message}"
+
+
+@case("TC-175", S4_TRANSFER, "Transferir desde una cuenta ajena", "A con saldo; B logueado.",
+      "Con el token de B, POST /accounts/{accountId de A}/transferences hacia B.",
+      "HTTP 403. El saldo de A no cambia.", "Seguridad", "Alta", REGRESSION,
+      "Sprint4ApiTest.noSePuedeTransferirDesdeUnaCuentaAjena")
+def tc175():
+    account_a, token_a = user_with_balance(100)
+    _, user_b, token_b = logged_user()
+    expect_status(transfer(account_a, token_b, user_b["alias"], 50), 403)
+    check(balance_of(account_a, token_a) == 100, "el saldo de A cambió")
+    return "HTTP 403; saldo de A sin cambios"
+
+
+@case("TC-176", S4_TRANSFER, "El destinatario ve la transferencia recibida", "A con saldo; B registrado.",
+      "A transfiere $30 a B. B consulta su actividad.",
+      "El primer movimiento de B es TRANSFER_IN (ingreso) con el CVU de A.", "Positivo", "Alta", REGRESSION)
+def tc176():
+    account_a, token_a = user_with_balance(100)
+    cvu_a = expect_status(api("GET", f"/accounts/{account_a}", token=token_a), 200).json["cvu"]
+    _, user_b, token_b = logged_user()
+    expect_status(transfer(account_a, token_a, user_b["alias"], 30), 200)
+    first = expect_status(api("GET", f"/accounts/{user_b['accountId']}/activity", token=token_b), 200).json[0]
+    check(first["type"] == "TRANSFER_IN" and first["counterpart"]["cvu"] == cvu_a, f"movimiento: {first}")
+    return f"B ve TRANSFER_IN de ${first['amount']} desde {first['counterpart'].get('name')}"
+
+
+@case("TC-177", S4_TRANSFER, "La clave de idempotencia evita transferir dos veces", "A con $1.000; B registrado.",
+      "Enviar dos veces la misma transferencia de $100 con el mismo header Idempotency-Key.",
+      "Ambas HTTP 200 con el mismo id de movimiento; la segunda con Idempotent-Replayed: true. A queda en $900.",
+      "Seguridad", "Alta", REGRESSION, "Sprint4ApiTest.conLaMismaClaveDeIdempotenciaLaTransferenciaSeHaceUnaSolaVez")
+def tc177():
+    account_a, token_a = user_with_balance(1000)
+    _, user_b, _ = logged_user()
+    key = f"qa-{time.time_ns()}"
+    first = expect_status(transfer(account_a, token_a, user_b["alias"], 100, headers={"Idempotency-Key": key}), 200).json
+    second = expect_status(transfer(account_a, token_a, user_b["alias"], 100, headers={"Idempotency-Key": key}), 200).json
+    balance = balance_of(account_a, token_a)
+    check(first["id"] == second["id"] and balance == 900, f"ids {first['id']}/{second['id']}, saldo {balance}")
+    return f"mismo movimiento {first['id']} en ambos envíos; saldo {balance}"
+
+
+@case("TC-178", S4_TRANSFER, "Montos inválidos en una transferencia", "A con $100; B registrado.",
+      "Transferir 0, -1, 1.001 y \"10\" (texto).", "HTTP 400 en los cuatro casos; el saldo no cambia.", "Negativo",
+      "Media", REGRESSION)
+def tc178():
+    account_a, token_a = user_with_balance(100)
+    _, user_b, _ = logged_user()
+    for amount in (0, -1, 1.001, "10"):
+        expect_status(transfer(account_a, token_a, user_b["alias"], amount), 400)
+    check(balance_of(account_a, token_a) == 100, "el saldo cambió")
+    return "HTTP 400 en los 4 montos; saldo sin cambios"
+
+
+@case("TC-179", S4_TRANSFER, "Transferencias cruzadas simultáneas", "A y B con $1.000 cada uno.",
+      "Al mismo tiempo: 10 transferencias de $10 de A a B y 10 de $5 de B a A.",
+      "Las 20 responden 200, sin bloqueos. Saldos finales: A $950 y B $1.050.", "Borde", "Alta", REGRESSION,
+      "Sprint4ApiTest.transferenciasCruzadasSimultaneasNoSeBloqueanNiPierdenDinero")
+def tc179():
+    import threading
+    account_a, token_a = user_with_balance(1000)
+    account_b, token_b = user_with_balance(1000)
+    alias_a = expect_status(api("GET", f"/accounts/{account_a}", token=token_a), 200).json["alias"]
+    alias_b = expect_status(api("GET", f"/accounts/{account_b}", token=token_b), 200).json["alias"]
+    statuses = []
+    threads = [threading.Thread(target=lambda: statuses.append(transfer(account_a, token_a, alias_b, 10).status)) for _ in range(10)]
+    threads += [threading.Thread(target=lambda: statuses.append(transfer(account_b, token_b, alias_a, 5).status)) for _ in range(10)]
+    [t.start() for t in threads]
+    [t.join() for t in threads]
+    balances = (balance_of(account_a, token_a), balance_of(account_b, token_b))
+    check(statuses == [200] * 20 and balances == (950, 1050), f"respuestas {sorted(statuses)}, saldos {balances}")
+    return f"20 respuestas 200; saldos A={balances[0]}, B={balances[1]}"
+
+
+@case("TC-180", S4_OPTIONAL, "Últimos destinatarios", "A transfirió a B, luego a C y otra vez a B.",
+      "GET /accounts/{accountId de A}/transferences.",
+      "HTTP 200 con 2 destinatarios sin repetir: primero B (última transferencia) y después C.", "Positivo", "Alta",
+      SMOKE, "Sprint4ApiTest.losUltimosDestinatariosSonLas5CuentasDistintasMasRecientes")
+def tc180():
+    account_a, token_a = user_with_balance(100)
+    _, user_b, _ = logged_user()
+    _, user_c, _ = logged_user()
+    for alias, amount in ((user_b["alias"], 1), (user_c["alias"], 1), (user_b["alias"], 2)):
+        expect_status(transfer(account_a, token_a, alias, amount), 200)
+    recipients = expect_status(api("GET", f"/accounts/{account_a}/transferences", token=token_a), 200).json
+    check([r["accountId"] for r in recipients] == [user_b["accountId"], user_c["accountId"]], f"destinatarios: {recipients}")
+    return "HTTP 200: " + ", ".join(f"{r['alias']} (${r['lastAmount']})" for r in recipients)
+
+
+@case("TC-181", S4_OPTIONAL, "Hasta 5 destinatarios", "A transfirió a 6 cuentas distintas.",
+      "GET /accounts/{accountId de A}/transferences.", "HTTP 200 con las 5 cuentas más recientes.", "Borde", "Media",
+      REGRESSION, "Sprint4ApiTest.losUltimosDestinatariosSonLas5CuentasDistintasMasRecientes")
+def tc181():
+    account_a, token_a = user_with_balance(100)
+    targets = [logged_user()[1] for _ in range(6)]
+    for target in targets:
+        expect_status(transfer(account_a, token_a, target["alias"], 1), 200)
+    recipients = expect_status(api("GET", f"/accounts/{account_a}/transferences", token=token_a), 200).json
+    expected = [t["accountId"] for t in reversed(targets[1:])]
+    check([r["accountId"] for r in recipients] == expected, f"destinatarios: {recipients}")
+    return "HTTP 200 con las 5 más recientes"
+
+
+@case("TC-182", S4_OPTIONAL, "Destinatarios de una cuenta ajena o sin transferencias", "A y B logueados; A nunca transfirió.",
+      "A consulta sus destinatarios; B consulta los de A.", "A: HTTP 200 con lista vacía. B: HTTP 403.", "Seguridad",
+      "Media", REGRESSION, "Sprint4ApiTest.sinTransferenciasLaListaDeDestinatariosEstaVaciaYUnaCuentaAjenaDevuelve403")
+def tc182():
+    _, user_a, token_a = logged_user()
+    _, _, token_b = logged_user()
+    empty = expect_status(api("GET", f"/accounts/{user_a['accountId']}/transferences", token=token_a), 200).json
+    expect_status(api("GET", f"/accounts/{user_a['accountId']}/transferences", token=token_b), 403)
+    check(empty == [], f"lista: {empty}")
+    return "propia: []; ajena: 403"
+
+
+@case("TC-190", S4_OPTIONAL, "Descargar el comprobante en PDF", "A transfirió $40 a B.",
+      "GET /accounts/{accountId}/activity/{id}/receipt.",
+      "HTTP 200, Content-Type application/pdf, descarga como comprobante-{id}.pdf con los datos del detalle.",
+      "Positivo", "Media", REGRESSION, "Sprint4ApiTest.elComprobanteEsUnPdfDescargable")
+def tc190():
+    account_a, token_a = user_with_balance(100)
+    _, user_b, _ = logged_user()
+    out = expect_status(transfer(account_a, token_a, user_b["alias"], 40), 200).json
+    request = urllib.request.Request(f"{ARGS.gateway}/accounts/{account_a}/activity/{out['id']}/receipt",
+                                     headers={"Authorization": "Bearer " + token_a})
+    with urllib.request.urlopen(request, timeout=20) as response:
+        pdf = response.read()
+        content_type = response.headers.get("Content-Type")
+        disposition = response.headers.get("Content-Disposition")
+    check(pdf.startswith(b"%PDF-") and content_type == "application/pdf" and f"comprobante-{out['id']}.pdf" in disposition,
+          f"{content_type} / {disposition}")
+    return f"HTTP 200 {content_type}, {len(pdf) // 1024} KB, {disposition}"
+
+
+@case("TC-191", S4_OPTIONAL, "Comprobante de un movimiento ajeno", "A transfirió a B.",
+      "B pide el comprobante del movimiento de A usando la cuenta de B.", "HTTP 404 en JSON (no un PDF).",
+      "Seguridad", "Media", REGRESSION, "Sprint4ApiTest.elComprobanteDeUnMovimientoAjenoNoSePuedeDescargar")
+def tc191():
+    account_a, token_a = user_with_balance(100)
+    _, user_b, token_b = logged_user()
+    out = expect_status(transfer(account_a, token_a, user_b["alias"], 40), 200).json
+    response = expect_status(api("GET", f"/accounts/{user_b['accountId']}/activity/{out['id']}/receipt", token=token_b,
+                                 headers={"Accept": "application/pdf"}), 404)
+    return f"HTTP 404: {response.message}"
+
+
+@case("TC-183", S4_TRANSFER, "Reutilizar la clave de idempotencia con otros datos", "A con $1.000; B registrado.",
+      "Transferir $100 con Idempotency-Key = K. Luego transferir $1 con la misma clave K.",
+      "La primera: HTTP 200. La segunda: HTTP 409 (la clave ya se usó para otra operación). A queda en $900.",
+      "Negativo", "Alta", REGRESSION, "Sprint4ApiTest.reutilizarLaClaveConOtrosDatosDevuelve409")
+def tc183():
+    account_a, token_a = user_with_balance(1000)
+    _, user_b, _ = logged_user()
+    key = f"qa-{time.time_ns()}"
+    expect_status(transfer(account_a, token_a, user_b["alias"], 100, headers={"Idempotency-Key": key}), 200)
+    response = expect_status(transfer(account_a, token_a, user_b["alias"], 1, headers={"Idempotency-Key": key}), 409)
+    check(balance_of(account_a, token_a) == 900, "el saldo no es 900")
+    return f"HTTP 409: {response.message}"
+
+
+@case("TC-184", S4_TRANSFER, "CVU pegado con espacios o guiones", "A con saldo; B registrado.",
+      "Transferir usando el CVU de B con un espacio y un guion en el medio.", "HTTP 200: el CVU se reconoce.",
+      "Borde", "Baja", REGRESSION, "Sprint4ApiTest.unCvuConEspaciosOGuionesSeReconoce")
+def tc184():
+    account_a, token_a = user_with_balance(100)
+    _, user_b, _ = logged_user()
+    cvu = user_b["cvu"]
+    spaced = cvu[:8] + " " + cvu[8:15] + "-" + cvu[15:]
+    expect_status(transfer(account_a, token_a, spaced, 10), 200)
+    return f"HTTP 200 con destino \"{spaced}\""
 
 
 # ---------------------------------------------------------------- ejecucion
