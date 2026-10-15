@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Digital Money House — Informe de trabajo de los sprints 2 a 4</title>
+<style>
+  @page { size: A4; margin: 17mm 16mm 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.2pt; line-height: 1.45; color: #1e293b; margin: 0; }
+  h1 { font-size: 23pt; margin: 0 0 4pt; color: #0f172a; line-height: 1.15; }
+  h2 { font-size: 14.5pt; color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 3pt; margin: 20pt 0 8pt; break-after: avoid; }
+  h3 { font-size: 11.5pt; color: #0f172a; margin: 13pt 0 4pt; break-after: avoid; }
+  p { margin: 0 0 7pt; }
+  ul, ol { margin: 0 0 7pt; padding-left: 17pt; }
+  li { margin-bottom: 2.5pt; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9pt; background: #f1f5f9; padding: 0 2.5pt; border-radius: 2pt; }
+  pre { font-family: Consolas, "Courier New", monospace; font-size: 8.6pt; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4pt; padding: 6pt 8pt; margin: 0 0 8pt; white-space: pre-wrap; break-inside: avoid; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 10pt; font-size: 9.2pt; }
+  th { background: #1e3a8a; color: #fff; text-align: left; padding: 4pt 6pt; font-weight: 600; }
+  td { border: 1px solid #cbd5e1; padding: 4pt 6pt; vertical-align: top; }
+  tr { break-inside: avoid; }
+  thead { display: table-header-group; }
+  tbody tr:nth-child(even) td { background: #f8fafc; }
+  .cover { border-left: 6px solid #1e3a8a; padding: 4pt 0 4pt 14pt; margin-bottom: 14pt; }
+  .cover .sub { font-size: 12.5pt; color: #475569; margin: 0; }
+  .meta { color: #475569; font-size: 9.5pt; margin-top: 7pt; }
+  .box { border: 1px solid #cbd5e1; border-left: 4px solid #1e3a8a; background: #f8fafc; border-radius: 3pt; padding: 7pt 10pt; margin: 0 0 10pt; break-inside: avoid; }
+  .box.warn { border-left-color: #b45309; background: #fffbeb; }
+  .box p:last-child { margin-bottom: 0; }
+  .ok { color: #166534; font-weight: 600; }
+  .pend { color: #b45309; font-weight: 600; }
+  .kpis { display: flex; gap: 8pt; margin: 0 0 11pt; }
+  .kpi { flex: 1; border: 1px solid #cbd5e1; border-radius: 4pt; padding: 6pt 8pt; text-align: center; }
+  .kpi b { display: block; font-size: 17pt; color: #1e3a8a; line-height: 1.15; }
+  .kpi span { font-size: 8.6pt; color: #475569; }
+  .step td:first-child { font-weight: 600; text-align: center; width: 22pt; }
+  figure { margin: 4pt 0 10pt; break-inside: avoid; text-align: center; }
+  figure img { width: 62%; border: 1px solid #cbd5e1; border-radius: 4pt; }
+  figcaption { font-size: 8.8pt; color: #475569; margin-top: 3pt; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Digital Money House<br>Informe de trabajo de los sprints 2 a 4</h1>
+  <p class="sub">Qué se hizo, y en qué momento y para qué se usó cada herramienta y framework</p>
+  <p class="meta">Repositorio <code>github.com/FedeVazquez/BilleteraVirtualJava</code> · ramas <code>main</code>, <code>dev</code> y <code>test</code> · 15 de octubre de 2026</p>
+</div>
+
+<h2>1. Resumen</h2>
+
+<p>Sobre la base del Sprint 1 (registro, login y logout con 5 microservicios) se completaron los
+sprints 2, 3 y 4. Ahora la billetera permite ver el saldo y los movimientos, editar el perfil y el
+alias, asociar tarjetas, cargar dinero desde una tarjeta, ver y filtrar toda la actividad, y transferir a
+otras cuentas por CVU, CBU o alias, con un comprobante en PDF. También se cubrieron las épicas de
+testing: automatización con RestAssured, colección de Postman, testing exploratorio y QA sign-off.
+En infraestructura se sumaron las imágenes para AWS y la integración continua en GitHub Actions.</p>
+
+<div class="kpis">
+  <div class="kpi"><b>12</b><span>endpoints nuevos</span></div>
+  <div class="kpi"><b>190</b><span>tests JUnit en verde</span></div>
+  <div class="kpi"><b>75</b><span>casos automatizados con RestAssured</span></div>
+  <div class="kpi"><b>138</b><span>casos en la planilla</span></div>
+  <div class="kpi"><b>10</b><span>defectos hallados y resueltos en total</span></div>
+</div>
+
+<div class="box">
+  <p><strong>Sobre Docker.</strong> La PC donde se trabajó no puede ejecutar Docker. Para no dejar el
+  entorno Docker sin probar, se armó un workflow de GitHub Actions que, en cada push, construye las
+  imágenes, levanta el <code>docker-compose</code> completo (MySQL, MailHog y los 5 servicios) y corre
+  contra él la automatización y la suite de casos. El resultado está en la sección 7.</p>
+</div>
+
+<h3>Cumplimiento de la consigna</h3>
+<table>
+  <thead><tr><th style="width:44%">Pedido</th><th>Dónde está</th><th style="width:13%">Estado</th></tr></thead>
+  <tbody>
+    <tr><td colspan="3"><strong>Sprint 2</strong></td></tr>
+    <tr><td>Dinero disponible (<code>GET /accounts/ID</code>) y últimos 5 movimientos (<code>GET /accounts/ID/transactions</code>)</td><td><code>AccountController</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Perfil: <code>GET</code> y <code>PATCH /users/ID</code>; <code>GET</code> y <code>PATCH /accounts/ID</code></td><td><code>UserController</code>, <code>AccountController</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Tarjetas: listar (200 vacío o con lista), detalle, alta (201/409/400) y baja (200/404)</td><td><code>CardController</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Testing manual: planilla, mantenimiento del Sprint 1, smoke y regresión, ejecución</td><td><code>casos-de-prueba.xlsx</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Automatizar la suite de smoke con Java y RestAssured, y subir el framework</td><td>Módulo <code>api-tests</code></td><td class="ok">Hecho</td></tr>
+    <tr><td colspan="3"><strong>Sprint 3</strong></td></tr>
+    <tr><td>Toda la actividad (<code>GET /accounts/ID/activity</code>) y el detalle de una actividad</td><td><code>ActivityController</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Ingresar dinero desde una tarjeta (<code>POST /accounts/ID/transferences</code>, 201)</td><td><code>TransferenceController</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Testing exploratorio y casos del Sprint 2 en la automatización</td><td><code>testing-exploratorio-sprint-3.md</code>, <code>api-tests</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Opcional: filtrar la actividad por monto, período e ingreso/egreso</td><td>Parámetros de <code>/activity</code></td><td class="ok">Hecho</td></tr>
+    <tr><td colspan="3"><strong>Sprint 4</strong></td></tr>
+    <tr><td>Transferir a CBU/CVU/alias (200, 400 cuenta inexistente, 410 fondos insuficientes) y últimos destinatarios</td><td><code>TransferenceController</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Testing manual del Sprint 3 y validación con Postman y scripts</td><td><code>docs/postman</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Testing exploratorio y QA sign-off</td><td><code>testing-exploratorio-sprint-4.md</code>, <code>qa-sign-off.md</code></td><td class="ok">Hecho</td></tr>
+    <tr><td>Docker Compose e imagen para deployar en AWS</td><td><code>docker-compose.yml</code>, <code>docker-compose.aws.yml</code>, workflow de imágenes, <code>deploy-aws.md</code></td><td class="pend">Hecho; AWS sin cuenta para probar</td></tr>
+    <tr><td>Opcional: comprobante en PDF y últimas 5 cuentas a las que se transfirió</td><td><code>/activity/ID/receipt</code>, <code>GET /transferences</code></td><td class="ok">Hecho</td></tr>
+  </tbody>
+</table>
+
+<h2>2. Paso a paso: qué se hizo y con qué</h2>
+
+<table class="step">
+  <thead><tr><th>#</th><th style="width:38%">Qué se hizo</th><th>Herramienta o framework, y para qué</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><strong>Subida a GitHub</strong> del Sprint 1 y lectura de las consignas de los sprints 2 a 4.</td><td><strong>Git</strong>: remoto <code>origin</code> y push de las tres ramas. Al cerrar cada sprint, <code>dev</code> se integra en <code>test</code> y <code>main</code> y se sube.</td></tr>
+    <tr><td>2</td><td><strong>Modelo de datos</strong> de los sprints 2 a 4, pensado de una vez: cuenta con saldo, tarjeta y movimiento.</td><td><strong>Spring Data JPA</strong>: entidades <code>Card</code> y <code>Transaction</code>, enums para tipos y marcas. <code>BigDecimal</code> para los montos, nunca <code>double</code>.</td></tr>
+    <tr><td>3</td><td><strong>Regla de acceso a una cuenta</strong>: solo el dueño o un administrador.</td><td><strong>Spring Security</strong>: el usuario del JWT se compara con el dueño de la cuenta (<code>AccountAccess</code>). Un usuario común recibe 403 aunque la cuenta no exista, para no revelar qué ids existen.</td></tr>
+    <tr><td>4</td><td><strong>Tarjetas</strong>: alta, listado, detalle y baja.</td><td><strong>Bean Validation</strong> para el formato; algoritmo de <strong>Luhn</strong> para el número; huella <strong>HMAC-SHA256</strong> (<code>javax.crypto</code>) para detectar tarjetas repetidas sin guardar el número. El código de seguridad se valida y se descarta.</td></tr>
+    <tr><td>5</td><td><strong>Perfil</strong>: edición de nombre, apellido y teléfono; el registro devuelve el id de la cuenta.</td><td><strong>Spring MVC</strong> (<code>@PatchMapping</code>) y <code>@PreAuthorize</code> para "solo el propio usuario".</td></tr>
+    <tr><td>6</td><td><strong>Framework de automatización</strong> (módulo <code>api-tests</code>).</td><td><strong>RestAssured</strong> + <strong>JUnit 5</strong>: tests contra el sistema levantado entrando por el gateway, con etiquetas <code>smoke</code> y <code>regression</code>. Leen el código de verificación desde <strong>MailHog</strong>.</td></tr>
+    <tr><td>7</td><td><strong>Tiempos de caché de Eureka</strong>: el gateway tardaba hasta 90 s en ver un servicio recién levantado.</td><td>Configuración de <strong>Eureka</strong> y de <strong>Spring Cloud LoadBalancer</strong>: ahora tarda unos segundos.</td></tr>
+    <tr><td>8</td><td><strong>Ingreso de dinero</strong> desde tarjeta.</td><td><strong>JPA</strong> con bloqueo pesimista (<code>SELECT … FOR UPDATE</code>) y optimista (<code>@Version</code>): dos ingresos simultáneos no se pisan el saldo.</td></tr>
+    <tr><td>9</td><td><strong>Actividad, detalle y filtros</strong> (monto, período, ingreso/egreso).</td><td><strong>JPA Specifications</strong> (Criteria API): la consulta se arma con los filtros presentes. Fechas en hora de Argentina.</td></tr>
+    <tr><td>10</td><td><strong>Testing exploratorio</strong> de los sprints 3 y 4: 79 pruebas en 4 sesiones, 5 defectos.</td><td>Scripts de <strong>Python</strong> para peticiones simultáneas y repetidas.</td></tr>
+    <tr><td>11</td><td><strong>Corrección de defectos</strong>: tipos estrictos en el JSON, errores sin clases internas, filtro sin mayúsculas, idempotencia con huella, CVU con espacios.</td><td><strong>Jackson</strong> (configuración de coerción), un <code>Converter</code> de <strong>Spring</strong> y <code>@RestControllerAdvice</code>.</td></tr>
+    <tr><td>12</td><td><strong>Transferencias</strong> por CVU/CBU/alias.</td><td>Transacción de <strong>Spring</strong> (<code>@Transactional</code>): débito y crédito juntos. Las dos cuentas se bloquean siempre en el mismo orden (id menor primero) para evitar deadlocks. <strong>OpenFeign</strong> trae el nombre del titular desde <code>users-service</code>; si no responde, la transferencia se hace igual.</td></tr>
+    <tr><td>13</td><td><strong>Idempotencia</strong> contra el doble envío.</td><td>Header <code>Idempotency-Key</code>: la clave se guarda con una huella <strong>SHA-256</strong> de la operación. El mismo pedido devuelve el original; la misma clave con otros datos devuelve 409.</td></tr>
+    <tr><td>14</td><td><strong>Comprobante en PDF</strong>.</td><td><strong>OpenPDF</strong>: genera el PDF con los mismos datos que el detalle de la actividad.</td></tr>
+    <tr><td>15</td><td><strong>Colección de Postman</strong> con 41 requests y scripts.</td><td><strong>Postman</strong> (formato v2.1). Se validó con un ejecutor equivalente, porque en la PC no hay Postman.</td></tr>
+    <tr><td>16</td><td><strong>Integración continua</strong> y <strong>prueba de Docker</strong>.</td><td><strong>GitHub Actions</strong>: compila y testea en cada push, construye las imágenes con el <code>Dockerfile</code>, levanta <code>docker-compose</code> y corre la automatización y la suite contra él.</td></tr>
+    <tr><td>17</td><td><strong>Imágenes para AWS</strong> y guía de despliegue.</td><td>Workflow que publica en <strong>GitHub Container Registry</strong> y, si se configura, en <strong>Amazon ECR</strong> (con OIDC, sin claves guardadas). <code>docker-compose.aws.yml</code> para un servidor EC2. Guía para ECS Fargate + RDS.</td></tr>
+    <tr><td>18</td><td><strong>Documentación</strong>: planilla, exploratorios, QA sign-off, README y este informe.</td><td>Python para la planilla <code>.xlsx</code> y <strong>Chrome</strong> sin interfaz para este PDF.</td></tr>
+  </tbody>
+</table>
+
+<h2>3. Endpoints nuevos</h2>
+<table>
+  <thead><tr><th style="width:43%">Endpoint</th><th>Qué hace</th><th style="width:24%">Respuestas</th></tr></thead>
+  <tbody>
+    <tr><td><code>GET /accounts/{id}</code></td><td>Cuenta con su dinero disponible</td><td>200 · 400 · 403</td></tr>
+    <tr><td><code>PATCH /accounts/{id}</code></td><td>Cambiar el alias</td><td>200 · 400 · 403 · 409</td></tr>
+    <tr><td><code>GET /accounts/{id}/transactions</code></td><td>Últimos 5 movimientos</td><td>200 · 403</td></tr>
+    <tr><td><code>PATCH /users/{id}</code></td><td>Editar nombre, apellido y teléfono</td><td>200 · 400 · 403 · 404</td></tr>
+    <tr><td><code>GET /accounts/{id}/cards</code> y <code>/cards/{cardId}</code></td><td>Listar tarjetas y ver una</td><td>200 · 403 · 404</td></tr>
+    <tr><td><code>POST /accounts/{id}/cards</code></td><td>Asociar una tarjeta</td><td>201 · 400 · 409</td></tr>
+    <tr><td><code>DELETE /accounts/{id}/cards/{cardId}</code></td><td>Eliminar una tarjeta</td><td>200 · 404</td></tr>
+    <tr><td><code>GET /accounts/{id}/activity</code></td><td>Toda la actividad, con filtros opcionales</td><td>200 · 400 · 403</td></tr>
+    <tr><td><code>GET /accounts/{id}/activity/{transactionId}</code></td><td>Detalle de un movimiento</td><td>200 · 400 · 403 · 404</td></tr>
+    <tr><td><code>GET /accounts/{id}/activity/{transactionId}/receipt</code></td><td>Comprobante en PDF</td><td>200 · 403 · 404</td></tr>
+    <tr><td><code>POST /accounts/{id}/transferences</code></td><td>Con <code>cardId</code>: ingreso desde tarjeta. Con <code>destination</code>: transferencia</td><td>201 · 200 · 400 · 403 · 404 · 409 · 410</td></tr>
+    <tr><td><code>GET /accounts/{id}/transferences</code></td><td>Últimas 5 cuentas a las que se transfirió</td><td>200 · 403</td></tr>
+  </tbody>
+</table>
+
+<p>La consigna usa la misma URL (<code>POST /accounts/ID/transferences</code>) para el ingreso desde
+tarjeta del Sprint 3 y la transferencia del Sprint 4. Se respetó: el cuerpo indica cuál es y cada una
+responde con el código que pide su sprint (201 y 200).</p>
+
+<h2>4. Decisiones técnicas</h2>
+<table>
+  <thead><tr><th style="width:30%">Decisión</th><th>Por qué</th></tr></thead>
+  <tbody>
+    <tr><td>Montos con <code>BigDecimal</code> y escala 2</td><td>Con <code>double</code>, 0,1 + 0,2 no da 0,3. Se verificó que 10 ingresos de $0,10 dan exactamente $1,00.</td></tr>
+    <tr><td>Bloqueo pesimista de las cuentas al mover dinero</td><td>Sin bloqueo, dos operaciones simultáneas leen el mismo saldo y una pisa a la otra. Probado con 12 ingresos y con 20 transferencias cruzadas al mismo tiempo.</td></tr>
+    <tr><td>Orden fijo de bloqueo (id menor primero)</td><td>Si A→B bloquea A y espera B mientras B→A bloquea B y espera A, se trancan las dos (deadlock). Con orden fijo eso no puede pasar.</td></tr>
+    <tr><td>Idempotencia con huella de la operación</td><td>Un doble clic o un reintento por timeout no repite la transferencia. Reusar la clave con otros datos es un error (409), no una respuesta silenciosa (defecto DEF-009).</td></tr>
+    <tr><td>Copia de los datos de la contraparte en el movimiento</td><td>El comprobante tiene que mostrar lo que fue, aunque después cambie el alias o se elimine la tarjeta.</td></tr>
+    <tr><td>Huella HMAC del número de tarjeta, no el número</td><td>Permite detectar la misma tarjeta en otra cuenta (409) sin guardar el número. Un hash simple no alcanza: los números de tarjeta se pueden probar por fuerza bruta.</td></tr>
+    <tr><td>Datos del titular por Feign sin bloquear la operación</td><td>El nombre del titular no es necesario para mover el dinero: si <code>users-service</code> no responde, la transferencia se completa igual.</td></tr>
+    <tr><td>Tipos estrictos en el JSON</td><td>En una operación con dinero, <code>"amount": "100"</code> debe rechazarse, no adivinarse (defecto DEF-006).</td></tr>
+  </tbody>
+</table>
+
+<h2>5. Testing</h2>
+<table>
+  <thead><tr><th style="width:24%">Nivel</th><th>Qué hay</th><th style="width:24%">Resultado</th></tr></thead>
+  <tbody>
+    <tr><td>Unitarios e integración (JUnit)</td><td>Cada servicio completo contra H2, incluidas pruebas de concurrencia, idempotencia y el PDF.</td><td class="ok">190 de 190</td></tr>
+    <tr><td>Automatización de API (RestAssured)</td><td>Módulo <code>api-tests</code>: smoke (21) y regresión (75), contra el sistema levantado.</td><td class="ok">75 de 75</td></tr>
+    <tr><td>Planilla de casos</td><td>138 casos de los 4 sprints, con suite de humo (22) y de regresión (138).</td><td><span class="ok">138 de 138</span>: 136 en local y 2 en Docker (GitHub Actions, sección 7)</td></tr>
+    <tr><td>Postman</td><td>41 requests con scripts, en el orden de uso de la billetera.</td><td class="ok">41 de 41</td></tr>
+    <tr><td>Exploratorio</td><td>Sprint 3: 2 sesiones, 48 pruebas. Sprint 4: 2 sesiones, 31 pruebas.</td><td>5 defectos, todos resueltos</td></tr>
+  </tbody>
+</table>
+
+<h3>Defectos de los sprints 3 y 4</h3>
+<table>
+  <thead><tr><th style="width:10%">ID</th><th style="width:10%">Severidad</th><th>Defecto</th><th style="width:34%">Corrección</th></tr></thead>
+  <tbody>
+    <tr><td>DEF-009</td><td>Alta</td><td>Reusar la clave de idempotencia con otro monto devolvía la transferencia original como si fuera la nueva.</td><td>Huella de los datos junto a la clave; distinta → 409.</td></tr>
+    <tr><td>DEF-006</td><td>Media</td><td>El ingreso de dinero aceptaba el monto y la tarjeta como texto.</td><td>Tipos estrictos en el JSON.</td></tr>
+    <tr><td>DEF-007</td><td>Baja</td><td>Los errores de conversión mostraban clases internas de Java.</td><td>Mensaje genérico, en los 3 servicios.</td></tr>
+    <tr><td>DEF-008</td><td>Baja</td><td>El filtro <code>direction</code> distinguía mayúsculas.</td><td>Conversión sin distinguir mayúsculas.</td></tr>
+    <tr><td>DEF-010</td><td>Baja</td><td>Un CVU con espacios o guiones no se reconocía.</td><td>Se limpian antes de buscar.</td></tr>
+  </tbody>
+</table>
+
+<h3>QA sign-off</h3>
+<p>Casos ejecutados: 138 · pasados: 138 (136 en local y los 2 de Docker en GitHub Actions) · defectos
+reportados y resueltos: 10 de 10 (los 4 sprints) · casos automatizados: 75 con RestAssured, además de
+190 tests JUnit. Detalle en <code>docs/testing/qa-sign-off.md</code>.</p>
+
+<h2>6. Comprobante en PDF</h2>
+<figure>
+  <img src="img/comprobante-ejemplo.png" alt="Comprobante de una transferencia enviada">
+  <figcaption>Comprobante real generado por la API para una transferencia de prueba.</figcaption>
+</figure>
+
+<h2>7. Docker, integración continua y AWS</h2>
+<p id="ci-result"><strong>Resultado:</strong> <span class="ok">CI en verde</span> (ejecución #4, commit <code>08442ee</code>). En un servidor de GitHub con Docker se construyeron las 5 imágenes, se levantó el entorno completo, pasaron los 75 casos RestAssured y la suite de la planilla contra MySQL y MailHog, y los datos siguieron ahí después de reiniciar los servicios. Las tres primeras ejecuciones fallaron por errores de los scripts de prueba del pipeline, no del sistema, y se corrigieron.</p>
+<ul>
+  <li><strong>Integración continua</strong> (<code>.github/workflows/ci.yml</code>): en cada push, compila y corre los tests; después levanta <code>docker-compose.yml</code>, espera a que los servicios estén registrados en Eureka y corre la automatización RestAssured, la suite de casos y la prueba de persistencia en MySQL reiniciando los servicios.</li>
+  <li><strong>Imágenes para AWS</strong> (<code>.github/workflows/publish-images.yml</code>): a pedido o con un tag <code>v*</code>, construye las 5 imágenes y las publica en GitHub Container Registry y, si se configura, en Amazon ECR.</li>
+  <li><strong>Despliegue</strong>: <code>docker-compose.aws.yml</code> levanta el sistema en un servidor EC2 con las imágenes publicadas; <code>docs/deploy-aws.md</code> explica ese camino y el de ECS Fargate + RDS. No se desplegó en una cuenta real de AWS.</li>
+</ul>
+
+<h2>8. Pendientes</h2>
+<ul>
+  <li>Probar el despliegue en una cuenta de AWS (requiere una cuenta propia).</li>
+  <li>Observaciones abiertas para conversar con el negocio: respuesta del login que permite saber qué emails existen, falta de límite de intentos y de montos diarios, actividad sin paginar y transferencias solo a cuentas de Digital Money House.</li>
+  <li>El documento <code>docs/proyecto-y-stack.md</code> quedó fuera del repositorio porque es material personal.</li>
+</ul>
+
+</body>
+</html>

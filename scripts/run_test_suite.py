@@ -945,7 +945,7 @@ def tc085():
 @case("TC-086", INF, "El entorno completo levanta con Docker Compose", "Docker Desktop funcionando.",
       "docker compose up -d --build y esperar a que los contenedores estén sanos. Ejecutar la suite de humo.",
       "Los 7 contenedores quedan arriba y la suite de humo pasa contra MySQL y MailHog.", "Positivo", "Alta", SMOKE,
-      manual=("Bloqueado", "No se pudo ejecutar: en esta máquina Docker Desktop no arranca porque Windows no tiene habilitada la característica \"Plataforma de máquina virtual\" (requiere administrador y reinicio). docker compose config valida el archivo.", "02/10/2026"))
+      manual=("Pasó", "Ejecutado en GitHub Actions (job docker-e2e, CI #4, commit 08442ee): docker compose up -d --build levantó MySQL, MailHog y los 5 servicios; los 4 servicios quedaron UP en Eureka y la automatización RestAssured (75 de 75) y la suite de casos pasaron contra MySQL y MailHog.", "15/10/2026"))
 def tc086():
     pass
 
@@ -953,7 +953,7 @@ def tc086():
 @case("TC-087", INF, "Los datos persisten en MySQL al reiniciar los servicios", "Entorno levantado con Docker Compose.",
       "Registrar un usuario, reiniciar users-service y account-service, y hacer login.",
       "El usuario y su cuenta siguen existiendo (login HTTP 200).", "Positivo", "Alta", REGRESSION,
-      manual=("Bloqueado", "Depende de TC-086 (Docker). La suite se ejecutó con el perfil h2 (base en memoria).", "02/10/2026"))
+      manual=("Pasó", "Ejecutado en GitHub Actions (job docker-e2e, CI #4, commit 08442ee) con scripts/check_persistence.py: después de docker compose restart de users-service, account-service y auth-service, el login respondió HTTP 200 y la cuenta conservó CVU, saldo 1234.50 y su movimiento.", "15/10/2026"))
 def tc087():
     pass
 

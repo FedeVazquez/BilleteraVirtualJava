@@ -2,7 +2,9 @@
 
 Billetera virtual. Desafío profesional de la especialización Backend, con arquitectura de
 microservicios. **Sprint 1:** registro con cuenta digital (CVU y alias), login, logout y, como
-opcionales, verificación de email y recupero de contraseña.
+opcionales, verificación de email y recupero de contraseña. **Sprint 2:** dinero disponible, perfil y
+tarjetas. **Sprint 3:** actividad con filtros e ingreso de dinero desde tarjeta. **Sprint 4:**
+transferencias a CVU/CBU/alias, últimos destinatarios y comprobante en PDF.
 
 ## Stack
 
@@ -80,8 +82,11 @@ Swagger UI unificado: `http://localhost:8090/swagger-ui.html` (arriba a la derec
 | `POST /accounts/{id}/cards` | Bearer | Asociar una tarjeta. Solo se guardan los últimos 4 dígitos. | 201 · 400 · 403 · 409 ya asociada |
 | `DELETE /accounts/{id}/cards/{cardId}` | Bearer | Eliminar una tarjeta. | 200 · 403 · 404 |
 | `POST /accounts/{id}/transferences` | Bearer | Ingresar dinero desde una tarjeta propia: `{"cardId": 1, "amount": 1500}`. | 201 · 400 · 403 · 404 |
+| `POST /accounts/{id}/transferences` | Bearer | Transferir a otra cuenta: `{"destination": "CVU, CBU o alias", "amount": 1500, "description": "opcional"}`. Header opcional `Idempotency-Key` para no repetir la operación. | 200 · 400 cuenta inexistente · 403 · 409 · 410 fondos insuficientes |
+| `GET /accounts/{id}/transferences` | Bearer | Últimas 5 cuentas a las que se transfirió. | 200 · 403 |
 | `GET /accounts/{id}/activity` | Bearer | Toda la actividad, de la más reciente a la más antigua. Filtros opcionales: `direction` (INCOME/EXPENSE), `from`, `to` (AAAA-MM-DD), `minAmount`, `maxAmount`. | 200 · 400 · 403 |
 | `GET /accounts/{id}/activity/{transactionId}` | Bearer | Detalle de un movimiento. | 200 · 400 · 403 · 404 |
+| `GET /accounts/{id}/activity/{transactionId}/receipt` | Bearer | Comprobante del movimiento en PDF. | 200 · 403 · 404 |
 
 Todos los errores tienen el mismo formato:
 
@@ -123,7 +128,19 @@ Con Docker, agregar `--mailhog http://localhost:8025` a `run_test_suite.py`.
 | [docs/testing/casos-de-prueba.xlsx](docs/testing/casos-de-prueba.xlsx) | Planilla de casos, suites smoke y regresión, resultados |
 | [docs/testing/testing-exploratorio.md](docs/testing/testing-exploratorio.md) | Testing exploratorio del Sprint 1 |
 | [docs/testing/testing-exploratorio-sprint-3.md](docs/testing/testing-exploratorio-sprint-3.md) | Testing exploratorio del Sprint 3 |
+| [docs/testing/testing-exploratorio-sprint-4.md](docs/testing/testing-exploratorio-sprint-4.md) | Testing exploratorio del Sprint 4 |
+| [docs/testing/qa-sign-off.md](docs/testing/qa-sign-off.md) | QA sign-off: casos ejecutados, aprobados, defectos y automatización |
 | [api-tests/README.md](api-tests/README.md) | Automatización con RestAssured |
+| [docs/postman](docs/postman) | Colección de Postman con scripts de prueba (importar colección y entorno) |
+| [docs/deploy-aws.md](docs/deploy-aws.md) | Imágenes Docker y despliegue en AWS |
+| [docs/informe-sprints-2-a-4.pdf](docs/informe-sprints-2-a-4.pdf) | Informe de trabajo de los sprints 2 a 4 |
+
+## Integración continua
+
+En cada push a `main`, `dev` o `test`, GitHub Actions (`.github/workflows/ci.yml`) compila, corre los
+tests y además levanta el entorno completo con Docker Compose para correr la automatización y la
+suite de casos contra él. Las imágenes para AWS se publican a pedido con el workflow
+"Publicar imágenes" (ver `docs/deploy-aws.md`).
 
 ## Ramas
 

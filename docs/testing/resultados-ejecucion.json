@@ -1,10 +1,9 @@
 {
   "suite": "regression",
-  "ejecutado": "2026-10-15T12:35:33",
+  "ejecutado": "2026-10-15T12:59:21",
   "entorno": "http://localhost:8090",
   "resumen": {
-    "Pasó": 119,
-    "Bloqueado": 2
+    "Pasó": 138
   },
   "casos": [
     {
@@ -22,7 +21,7 @@
       "restassured": "AuthApiTest.registroExitoso",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 201, id=1, cvu=6334344006712411812213, alias=condor.relampago.laguna",
+      "obtenido": "HTTP 201, id=98, cvu=3257469782009407052174, alias=roca.delta.agua",
       "fecha": "15/10/2026"
     },
     {
@@ -40,7 +39,7 @@
       "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "cvu=4488830393826342522755 (22 dígitos)",
+      "obtenido": "cvu=2437004423526538058333 (22 dígitos)",
       "fecha": "15/10/2026"
     },
     {
@@ -58,7 +57,7 @@
       "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "alias=arbol.tero.menta (las 3 palabras están en alias-words.txt)",
+      "obtenido": "alias=rocio.canoa.hongo (las 3 palabras están en alias-words.txt)",
       "fecha": "15/10/2026"
     },
     {
@@ -400,7 +399,7 @@
       "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 201 con id=14; login sin verificar: HTTP 403 (emailVerified ignorado)",
+      "obtenido": "HTTP 201 con id=111; login sin verificar: HTTP 403 (emailVerified ignorado)",
       "fecha": "15/10/2026"
     },
     {
@@ -490,7 +489,7 @@
       "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "sub=17, roles=['ROLE_USER'], vence en 60 min",
+      "obtenido": "sub=114, roles=['ROLE_USER'], vence en 60 min",
       "fecha": "15/10/2026"
     },
     {
@@ -598,7 +597,7 @@
       "restassured": "AuthApiTest.accesoConToken",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 200: Juan Pérez <qa584n34@mail.com>",
+      "obtenido": "HTTP 200: Juan Pérez <qa439n34@mail.com>",
       "fecha": "15/10/2026"
     },
     {
@@ -886,7 +885,7 @@
       "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "mail \"Digital Money House - Verificá tu email\" con código de 6 dígitos (275743)",
+      "obtenido": "mail \"Digital Money House - Verificá tu email\" con código de 6 dígitos (119713)",
       "fecha": "15/10/2026"
     },
     {
@@ -1228,7 +1227,7 @@
       "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "Swagger UI HTTP 200; auth: 7 endpoints, users: 2 endpoints, accounts: 8 endpoints",
+      "obtenido": "Swagger UI HTTP 200; auth: 7 endpoints, users: 2 endpoints, accounts: 9 endpoints",
       "fecha": "15/10/2026"
     },
     {
@@ -1281,9 +1280,9 @@
       "sprint": "1",
       "restassured": "",
       "ejecucion": "Manual",
-      "estado": "Bloqueado",
-      "obtenido": "No se pudo ejecutar: en esta máquina Docker Desktop no arranca porque Windows no tiene habilitada la característica \"Plataforma de máquina virtual\" (requiere administrador y reinicio). docker compose config valida el archivo.",
-      "fecha": "02/10/2026"
+      "estado": "Pasó",
+      "obtenido": "Ejecutado en GitHub Actions (job docker-e2e, CI #4, commit 08442ee): docker compose up -d --build levantó MySQL, MailHog y los 5 servicios; los 4 servicios quedaron UP en Eureka y la automatización RestAssured (75 de 75) y la suite de casos pasaron contra MySQL y MailHog.",
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-087",
@@ -1299,9 +1298,9 @@
       "sprint": "1",
       "restassured": "",
       "ejecucion": "Manual",
-      "estado": "Bloqueado",
-      "obtenido": "Depende de TC-086 (Docker). La suite se ejecutó con el perfil h2 (base en memoria).",
-      "fecha": "02/10/2026"
+      "estado": "Pasó",
+      "obtenido": "Ejecutado en GitHub Actions (job docker-e2e, CI #4, commit 08442ee) con scripts/check_persistence.py: después de docker compose restart de users-service, account-service y auth-service, el login respondió HTTP 200 y la cuenta conservó CVU, saldo 1234.50 y su movimiento.",
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-100",
@@ -1318,7 +1317,7 @@
       "restassured": "AccountApiTest.dineroDisponible",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 200: cvu=9412470896288656923251, alias=pasto.remo.tero, balance=0.0",
+      "obtenido": "HTTP 200: cvu=9713684828224062434639, alias=pradera.perla.trueno, balance=0.0",
       "fecha": "15/10/2026"
     },
     {
@@ -1426,7 +1425,7 @@
       "restassured": "UserProfileApiTest.verPerfil",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "usuario Juan Pérez; cvu=7356793963469973822129, alias=fogata.avion.glaciar",
+      "obtenido": "usuario Juan Pérez; cvu=6658065001634942495360, alias=tigre.yaguarete.remo",
       "fecha": "15/10/2026"
     },
     {
@@ -1534,7 +1533,7 @@
       "restassured": "AccountApiTest.modificarAlias",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 200: alias=nuevo.alias.qa56",
+      "obtenido": "HTTP 200: alias=nuevo.alias.qa153",
       "fecha": "15/10/2026"
     },
     {
@@ -1570,7 +1569,7 @@
       "restassured": "AccountApiTest.aliasEnUso",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 409: El alias rocio.panal.salto ya está en uso",
+      "obtenido": "HTTP 409: El alias volcan.cima.rio ya está en uso",
       "fecha": "15/10/2026"
     },
     {
@@ -1606,7 +1605,7 @@
       "restassured": "CardApiTest.asociarTarjeta",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 201: VISA **** **** **** 0085, tipo DEBIT",
+      "obtenido": "HTTP 201: VISA **** **** **** 4931, tipo DEBIT",
       "fecha": "15/10/2026"
     },
     {
@@ -1642,7 +1641,7 @@
       "restassured": "CardApiTest.detalleTarjeta",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 200: tarjeta 5 terminada en 9557",
+      "obtenido": "HTTP 200: tarjeta 43 terminada en 9261",
       "fecha": "15/10/2026"
     },
     {
@@ -1768,7 +1767,7 @@
       "restassured": "CardApiTest.eliminarInexistente",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 404: No existe la tarjeta 999999 asociada a la cuenta 71",
+      "obtenido": "HTTP 404: No existe la tarjeta 999999 asociada a la cuenta 168",
       "fecha": "15/10/2026"
     },
     {
@@ -1804,7 +1803,7 @@
       "restassured": "CardApiTest.noExponeDatosSensibles",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "solo se expone **** **** **** 7084",
+      "obtenido": "solo se expone **** **** **** 8809",
       "fecha": "15/10/2026"
     },
     {
@@ -1822,7 +1821,7 @@
       "restassured": "ActivityApiTest.actividadOrdenada",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 200: ids [10, 9, 8]",
+      "obtenido": "HTTP 200: ids [72, 71, 70]",
       "fecha": "15/10/2026"
     },
     {
@@ -1894,7 +1893,7 @@
       "restassured": "ActivityApiTest.detalle",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 200: DEPOSIT $250.0 - Ingreso desde tarjeta terminada en 3971",
+      "obtenido": "HTTP 200: DEPOSIT $250.0 - Ingreso desde tarjeta terminada en 1170",
       "fecha": "15/10/2026"
     },
     {
@@ -1912,7 +1911,7 @@
       "restassured": "ActivityApiTest.detalleInexistente",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 404: No existe la actividad 999999 en la cuenta 80",
+      "obtenido": "HTTP 404: No existe la actividad 999999 en la cuenta 177",
       "fecha": "15/10/2026"
     },
     {
@@ -2092,7 +2091,7 @@
       "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "nuevo ingreso 404; el detalle conserva la tarjeta ...6404",
+      "obtenido": "nuevo ingreso 404; el detalle conserva la tarjeta ...2125",
       "fecha": "15/10/2026"
     },
     {
@@ -2183,6 +2182,312 @@
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400 en los tres; minAmount: tiene un valor inválido",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-170",
+      "historia": "S4 Transferir dinero",
+      "titulo": "Transferir dinero por alias",
+      "precondiciones": "A con $1.000 de saldo; B registrado.",
+      "pasos": "Con el token de A, POST /accounts/{accountId de A}/transferences con {\"destination\": alias de B, \"amount\": 250.50}.",
+      "esperado": "HTTP 200 con el movimiento TRANSFER_OUT y los datos de B (CVU, alias y titular). Saldos: A $749.50, B $250.50.",
+      "tipo": "Positivo",
+      "prioridad": "Alta",
+      "suite": "Smoke + Regresión",
+      "junit": "Sprint4ApiTest.transferirPorAliasDevuelve200YMueveElDineroEntreLasDosCuentas",
+      "sprint": "4",
+      "restassured": "TransferApiTest.transferirPorAlias",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200 a Juan Pérez; saldos A=749.5, B=250.5",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-171",
+      "historia": "S4 Transferir dinero",
+      "titulo": "Transferir dinero por CVU",
+      "precondiciones": "A con $100; B registrado.",
+      "pasos": "Transferir $100 a B usando su CVU de 22 dígitos.",
+      "esperado": "HTTP 200. A queda en $0 y B en $100.",
+      "tipo": "Positivo",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.transferirPorCvuDevuelve200",
+      "sprint": "4",
+      "restassured": "TransferApiTest.transferirPorCvu",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200; saldos (0.0, 100.0)",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-172",
+      "historia": "S4 Transferir dinero",
+      "titulo": "Fondos insuficientes",
+      "precondiciones": "A con $100; B registrado.",
+      "pasos": "Transferir $100.01 a B.",
+      "esperado": "HTTP 410 (fondos insuficientes). Los saldos no cambian.",
+      "tipo": "Negativo",
+      "prioridad": "Alta",
+      "suite": "Smoke + Regresión",
+      "junit": "Sprint4ApiTest.sinFondosSuficientesDevuelve410YNoMueveDinero",
+      "sprint": "4",
+      "restassured": "TransferApiTest.fondosInsuficientes",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 410: Fondos insuficientes: el saldo disponible es $100.00",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-173",
+      "historia": "S4 Transferir dinero",
+      "titulo": "Cuenta destino inexistente",
+      "precondiciones": "A con saldo.",
+      "pasos": "Transferir a un alias inexistente y a un CVU inexistente.",
+      "esperado": "HTTP 400 (cuenta inexistente) en ambos.",
+      "tipo": "Negativo",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.unaCuentaDestinoInexistenteDevuelve400",
+      "sprint": "4",
+      "restassured": "TransferApiTest.destinoInexistente",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 400: La cuenta destino no existe: no.existe.nadie",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-174",
+      "historia": "S4 Transferir dinero",
+      "titulo": "Transferir a la misma cuenta",
+      "precondiciones": "A con saldo.",
+      "pasos": "Transferir a su propio alias.",
+      "esperado": "HTTP 400.",
+      "tipo": "Negativo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.transferirALaMismaCuentaDevuelve400",
+      "sprint": "4",
+      "restassured": "TransferApiTest.mismaCuenta",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 400: No se puede transferir a la misma cuenta",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-175",
+      "historia": "S4 Transferir dinero",
+      "titulo": "Transferir desde una cuenta ajena",
+      "precondiciones": "A con saldo; B logueado.",
+      "pasos": "Con el token de B, POST /accounts/{accountId de A}/transferences hacia B.",
+      "esperado": "HTTP 403. El saldo de A no cambia.",
+      "tipo": "Seguridad",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.noSePuedeTransferirDesdeUnaCuentaAjena",
+      "sprint": "4",
+      "restassured": "TransferApiTest.cuentaAjena",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 403; saldo de A sin cambios",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-176",
+      "historia": "S4 Transferir dinero",
+      "titulo": "El destinatario ve la transferencia recibida",
+      "precondiciones": "A con saldo; B registrado.",
+      "pasos": "A transfiere $30 a B. B consulta su actividad.",
+      "esperado": "El primer movimiento de B es TRANSFER_IN (ingreso) con el CVU de A.",
+      "tipo": "Positivo",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "",
+      "sprint": "4",
+      "restassured": "TransferApiTest.destinatarioVeLaTransferencia",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "B ve TRANSFER_IN de $30.0 desde Juan Pérez",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-177",
+      "historia": "S4 Transferir dinero",
+      "titulo": "La clave de idempotencia evita transferir dos veces",
+      "precondiciones": "A con $1.000; B registrado.",
+      "pasos": "Enviar dos veces la misma transferencia de $100 con el mismo header Idempotency-Key.",
+      "esperado": "Ambas HTTP 200 con el mismo id de movimiento; la segunda con Idempotent-Replayed: true. A queda en $900.",
+      "tipo": "Seguridad",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.conLaMismaClaveDeIdempotenciaLaTransferenciaSeHaceUnaSolaVez",
+      "sprint": "4",
+      "restassured": "TransferApiTest.idempotencia",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "mismo movimiento 107 en ambos envíos; saldo 900.0",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-178",
+      "historia": "S4 Transferir dinero",
+      "titulo": "Montos inválidos en una transferencia",
+      "precondiciones": "A con $100; B registrado.",
+      "pasos": "Transferir 0, -1, 1.001 y \"10\" (texto).",
+      "esperado": "HTTP 400 en los cuatro casos; el saldo no cambia.",
+      "tipo": "Negativo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "",
+      "sprint": "4",
+      "restassured": "TransferApiTest.montosInvalidos",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 400 en los 4 montos; saldo sin cambios",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-179",
+      "historia": "S4 Transferir dinero",
+      "titulo": "Transferencias cruzadas simultáneas",
+      "precondiciones": "A y B con $1.000 cada uno.",
+      "pasos": "Al mismo tiempo: 10 transferencias de $10 de A a B y 10 de $5 de B a A.",
+      "esperado": "Las 20 responden 200, sin bloqueos. Saldos finales: A $950 y B $1.050.",
+      "tipo": "Borde",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.transferenciasCruzadasSimultaneasNoSeBloqueanNiPierdenDinero",
+      "sprint": "4",
+      "restassured": "",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "20 respuestas 200; saldos A=950.0, B=1050.0",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-180",
+      "historia": "S4 Opcional: comprobante y destinatarios",
+      "titulo": "Últimos destinatarios",
+      "precondiciones": "A transfirió a B, luego a C y otra vez a B.",
+      "pasos": "GET /accounts/{accountId de A}/transferences.",
+      "esperado": "HTTP 200 con 2 destinatarios sin repetir: primero B (última transferencia) y después C.",
+      "tipo": "Positivo",
+      "prioridad": "Alta",
+      "suite": "Smoke + Regresión",
+      "junit": "Sprint4ApiTest.losUltimosDestinatariosSonLas5CuentasDistintasMasRecientes",
+      "sprint": "4",
+      "restassured": "TransferApiTest.ultimosDestinatarios",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200: nacar.maiz.bahia ($2.0), valle.laguna.rama ($1.0)",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-181",
+      "historia": "S4 Opcional: comprobante y destinatarios",
+      "titulo": "Hasta 5 destinatarios",
+      "precondiciones": "A transfirió a 6 cuentas distintas.",
+      "pasos": "GET /accounts/{accountId de A}/transferences.",
+      "esperado": "HTTP 200 con las 5 cuentas más recientes.",
+      "tipo": "Borde",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.losUltimosDestinatariosSonLas5CuentasDistintasMasRecientes",
+      "sprint": "4",
+      "restassured": "TransferApiTest.destinatariosAjenos",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200 con las 5 más recientes",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-182",
+      "historia": "S4 Opcional: comprobante y destinatarios",
+      "titulo": "Destinatarios de una cuenta ajena o sin transferencias",
+      "precondiciones": "A y B logueados; A nunca transfirió.",
+      "pasos": "A consulta sus destinatarios; B consulta los de A.",
+      "esperado": "A: HTTP 200 con lista vacía. B: HTTP 403.",
+      "tipo": "Seguridad",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.sinTransferenciasLaListaDeDestinatariosEstaVaciaYUnaCuentaAjenaDevuelve403",
+      "sprint": "4",
+      "restassured": "TransferApiTest.sinDestinatarios",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "propia: []; ajena: 403",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-183",
+      "historia": "S4 Transferir dinero",
+      "titulo": "Reutilizar la clave de idempotencia con otros datos",
+      "precondiciones": "A con $1.000; B registrado.",
+      "pasos": "Transferir $100 con Idempotency-Key = K. Luego transferir $1 con la misma clave K.",
+      "esperado": "La primera: HTTP 200. La segunda: HTTP 409 (la clave ya se usó para otra operación). A queda en $900.",
+      "tipo": "Negativo",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.reutilizarLaClaveConOtrosDatosDevuelve409",
+      "sprint": "4",
+      "restassured": "TransferApiTest.claveReutilizada",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 409: La clave Idempotency-Key ya se usó para una operación con otros datos",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-184",
+      "historia": "S4 Transferir dinero",
+      "titulo": "CVU pegado con espacios o guiones",
+      "precondiciones": "A con saldo; B registrado.",
+      "pasos": "Transferir usando el CVU de B con un espacio y un guion en el medio.",
+      "esperado": "HTTP 200: el CVU se reconoce.",
+      "tipo": "Borde",
+      "prioridad": "Baja",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.unCvuConEspaciosOGuionesSeReconoce",
+      "sprint": "4",
+      "restassured": "TransferApiTest.cvuConEspacios",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200 con destino \"80382644 0129840-7591067\"",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-190",
+      "historia": "S4 Opcional: comprobante y destinatarios",
+      "titulo": "Descargar el comprobante en PDF",
+      "precondiciones": "A transfirió $40 a B.",
+      "pasos": "GET /accounts/{accountId}/activity/{id}/receipt.",
+      "esperado": "HTTP 200, Content-Type application/pdf, descarga como comprobante-{id}.pdf con los datos del detalle.",
+      "tipo": "Positivo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.elComprobanteEsUnPdfDescargable",
+      "sprint": "4",
+      "restassured": "TransferApiTest.comprobantePdf",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200 application/pdf, 1 KB, attachment; filename=\"comprobante-179.pdf\"",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-191",
+      "historia": "S4 Opcional: comprobante y destinatarios",
+      "titulo": "Comprobante de un movimiento ajeno",
+      "precondiciones": "A transfirió a B.",
+      "pasos": "B pide el comprobante del movimiento de A usando la cuenta de B.",
+      "esperado": "HTTP 404 en JSON (no un PDF).",
+      "tipo": "Seguridad",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint4ApiTest.elComprobanteDeUnMovimientoAjenoNoSePuedeDescargar",
+      "sprint": "4",
+      "restassured": "TransferApiTest.comprobanteAjeno",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 404: No existe la actividad 182 en la cuenta 233",
       "fecha": "15/10/2026"
     }
   ]
