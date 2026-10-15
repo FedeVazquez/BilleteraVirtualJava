@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "accounts")
@@ -34,6 +35,10 @@ public class Account {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    /** Bloqueo optimista: si dos operaciones modifican la cuenta a la vez, la segunda falla en lugar de pisar a la primera. */
+    @Version
+    private long version;
+
     protected Account() {
         // requerido por JPA
     }
@@ -47,6 +52,23 @@ public class Account {
     @PrePersist
     void onCreate() {
         this.createdAt = Instant.now();
+    }
+
+    public void changeAlias(String newAlias) {
+        this.alias = newAlias;
+    }
+
+    public void credit(BigDecimal amount) {
+        this.balance = balance.add(amount);
+    }
+
+    /** El llamador debe verificar antes que el saldo alcance (ver {@link #hasFunds}). */
+    public void debit(BigDecimal amount) {
+        this.balance = balance.subtract(amount);
+    }
+
+    public boolean hasFunds(BigDecimal amount) {
+        return balance.compareTo(amount) >= 0;
     }
 
     public Long getId() {

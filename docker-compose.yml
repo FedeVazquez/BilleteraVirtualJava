@@ -129,6 +129,7 @@ services:
     environment:
       <<: [*common-env, *db-env]
       DB_NAME: dmh_accounts
+      CARD_FINGERPRINT_KEY: ${CARD_FINGERPRINT_KEY:-dmh-dev-card-fingerprint-key}
     depends_on:
       mysql:
         condition: service_healthy

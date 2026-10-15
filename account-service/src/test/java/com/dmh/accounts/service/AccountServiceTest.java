@@ -19,6 +19,8 @@ import com.dmh.accounts.dto.AccountResponse;
 import com.dmh.accounts.exception.ResourceNotFoundException;
 import com.dmh.accounts.model.Account;
 import com.dmh.accounts.repository.AccountRepository;
+import com.dmh.accounts.repository.TransactionRepository;
+import com.dmh.accounts.security.AccountAccess;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
@@ -31,6 +33,10 @@ class AccountServiceTest {
     private CvuGenerator cvuGenerator;
     @Mock
     private AliasGenerator aliasGenerator;
+    @Mock
+    private TransactionRepository transactionRepository;
+    @Mock
+    private AccountAccess accountAccess;
     @InjectMocks
     private AccountService accountService;
 
