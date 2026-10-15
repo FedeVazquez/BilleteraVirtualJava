@@ -23,6 +23,7 @@
         <module>auth-service</module>
         <module>users-service</module>
         <module>account-service</module>
+        <module>api-tests</module>
     </modules>
 
     <properties>

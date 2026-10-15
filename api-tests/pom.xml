@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.digitalmoneyhouse</groupId>
+        <artifactId>digital-money-house</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>api-tests</artifactId>
+    <name>api-tests</name>
+    <description>
+        Tests automatizados de la API (RestAssured) que se ejecutan contra el sistema levantado, entrando
+        por el API Gateway. No corren en el build normal: necesitan los servicios arriba.
+    </description>
+
+    <properties>
+        <!-- Se activan con -DskipApiTests=false (ver README de este modulo). -->
+        <skipApiTests>true</skipApiTests>
+        <api.baseUrl>http://localhost:8090</api.baseUrl>
+        <api.eurekaUrl>http://localhost:8761</api.eurekaUrl>
+        <mail.source>mailhog:http://localhost:8025</mail.source>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>${skipApiTests}</skipTests>
+                    <systemPropertyVariables>
+                        <api.baseUrl>${api.baseUrl}</api.baseUrl>
+                        <api.eurekaUrl>${api.eurekaUrl}</api.eurekaUrl>
+                        <mail.source>${mail.source}</mail.source>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
