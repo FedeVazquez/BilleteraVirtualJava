@@ -54,6 +54,8 @@ spring:
                 allowed-origin-patterns: ${CORS_ALLOWED_ORIGINS:http://localhost:[*]}
                 allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
                 allowed-headers: '*'
+                # Headers de respuesta que el navegador deja leer al frontend.
+                exposed-headers: Content-Disposition,Idempotent-Replayed
 
 eureka:
   client:

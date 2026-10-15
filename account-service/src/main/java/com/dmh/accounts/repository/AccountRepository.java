@@ -21,6 +21,13 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     boolean existsByCvu(String cvu);
 
+    /** Solo el id: permite ubicar la cuenta destino sin cargarla antes de bloquearla. */
+    @Query("select a.id from Account a where a.cvu = :cvu")
+    Optional<Long> findIdByCvu(@Param("cvu") String cvu);
+
+    @Query("select a.id from Account a where a.alias = :alias")
+    Optional<Long> findIdByAlias(@Param("alias") String alias);
+
     boolean existsByAlias(String alias);
 
     /**

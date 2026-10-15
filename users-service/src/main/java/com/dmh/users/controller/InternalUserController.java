@@ -2,6 +2,7 @@ package com.dmh.users.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dmh.users.dto.CredentialsResponse;
 import com.dmh.users.dto.EmailRequest;
 import com.dmh.users.dto.ResetPasswordRequest;
+import com.dmh.users.dto.UserResponse;
 import com.dmh.users.dto.VerifyEmailRequest;
 import com.dmh.users.service.EmailVerificationService;
 import com.dmh.users.service.PasswordResetService;
@@ -43,6 +45,16 @@ public class InternalUserController {
     @GetMapping("/credentials")
     public CredentialsResponse credentials(@RequestParam String email) {
         return userService.getCredentials(email);
+    }
+
+    /** Nombre y apellido, para mostrar el titular en transferencias y comprobantes. */
+    @GetMapping("/{id}/summary")
+    public UserSummary summary(@PathVariable Long id) {
+        UserResponse user = userService.getById(id);
+        return new UserSummary(user.id(), user.firstName(), user.lastName());
+    }
+
+    public record UserSummary(Long id, String firstName, String lastName) {
     }
 
     @PostMapping("/email-verification/confirm")

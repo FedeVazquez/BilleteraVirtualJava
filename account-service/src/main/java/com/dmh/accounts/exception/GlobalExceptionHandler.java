@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -104,6 +105,8 @@ public class GlobalExceptionHandler {
 
     private static ResponseEntity<ApiError> build(HttpStatus status, String message, HttpServletRequest request,
             List<String> details) {
-        return ResponseEntity.status(status).body(ApiError.of(status, message, request.getRequestURI(), details));
+        // Tipo explicito: el error sale en JSON aunque el cliente haya pedido otro formato (por ejemplo, un PDF).
+        return ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON)
+                .body(ApiError.of(status, message, request.getRequestURI(), details));
     }
 }

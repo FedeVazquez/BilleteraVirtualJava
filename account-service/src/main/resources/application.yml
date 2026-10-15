@@ -5,6 +5,13 @@ spring:
   application:
     name: account-service
   cloud:
+    openfeign:
+      client:
+        config:
+          users-service:
+            # La consulta del nombre del titular ocurre con las cuentas bloqueadas: tiempos cortos.
+            connect-timeout: 2000
+            read-timeout: 3000
     loadbalancer:
       cache:
         # Lista de instancias en cache por 5 s (por defecto 35 s).

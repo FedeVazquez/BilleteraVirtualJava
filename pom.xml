@@ -32,6 +32,7 @@
         <spring-cloud.version>2025.0.3</spring-cloud.version>
         <springdoc.version>2.8.17</springdoc.version>
         <jjwt.version>0.13.0</jjwt.version>
+        <openpdf.version>2.4.0</openpdf.version>
     </properties>
 
     <dependencyManagement>
@@ -52,6 +53,11 @@
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
                 <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.librepdf</groupId>
+                <artifactId>openpdf</artifactId>
+                <version>${openpdf.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
