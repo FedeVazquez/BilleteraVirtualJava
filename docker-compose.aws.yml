@@ -1,0 +1,104 @@
+# Digital Money House en un servidor de AWS (EC2) usando las imagenes ya publicadas,
+# sin compilar nada en el servidor. Ver docs/deploy-aws.md.
+#
+#   cp .env.example .env      # y completar TODAS las claves con valores propios
+#   docker compose -f docker-compose.aws.yml --env-file .env up -d
+#
+# Base de datos: por defecto usa un contenedor MySQL con volumen. Para usar Amazon RDS, definir
+# DB_HOST con el endpoint de RDS en el .env y levantar sin el servicio mysql:
+#   docker compose -f docker-compose.aws.yml up -d eureka-server api-gateway auth-service users-service account-service
+
+name: dmh
+
+x-service-defaults: &service-defaults
+  restart: unless-stopped
+  networks: [dmh-net]
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "5" }
+
+x-common-env: &common-env
+  EUREKA_URL: http://eureka-server:8761/eureka/
+  JWT_SECRET: ${JWT_SECRET:?Definir JWT_SECRET en .env}
+  INTERNAL_API_KEY: ${INTERNAL_API_KEY:?Definir INTERNAL_API_KEY en .env}
+  GATEWAY_URL: ${PUBLIC_URL:?Definir PUBLIC_URL en .env (https://tu-dominio)}
+  JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75
+
+x-db-env: &db-env
+  DB_HOST: ${DB_HOST:-mysql}
+  DB_PORT: ${DB_PORT:-3306}
+  DB_USER: ${DB_USER:-dmh}
+  DB_PASSWORD: ${DB_PASSWORD:?Definir DB_PASSWORD en .env}
+
+services:
+  mysql:
+    <<: *service-defaults
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Definir MYSQL_ROOT_PASSWORD en .env}
+      MYSQL_USER: ${DB_USER:-dmh}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  eureka-server:
+    <<: *service-defaults
+    image: ${IMAGE_REGISTRY:-ghcr.io/fedevazquez}/dmh-eureka-server:${IMAGE_TAG:-latest}
+    environment:
+      EUREKA_HOSTNAME: eureka-server
+
+  api-gateway:
+    <<: *service-defaults
+    image: ${IMAGE_REGISTRY:-ghcr.io/fedevazquez}/dmh-api-gateway:${IMAGE_TAG:-latest}
+    environment:
+      <<: *common-env
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://*}
+    ports:
+      # Unico puerto publicado. En AWS, el balanceador de carga (HTTPS) apunta a este puerto.
+      - "${GATEWAY_PORT:-8090}:8090"
+    depends_on: [eureka-server]
+
+  auth-service:
+    <<: *service-defaults
+    image: ${IMAGE_REGISTRY:-ghcr.io/fedevazquez}/dmh-auth-service:${IMAGE_TAG:-latest}
+    environment:
+      <<: [*common-env, *db-env]
+      DB_NAME: dmh_auth
+    depends_on: [eureka-server]
+
+  users-service:
+    <<: *service-defaults
+    image: ${IMAGE_REGISTRY:-ghcr.io/fedevazquez}/dmh-users-service:${IMAGE_TAG:-latest}
+    environment:
+      <<: [*common-env, *db-env]
+      DB_NAME: dmh_users
+      MAIL_HOST: ${MAIL_HOST:?Definir MAIL_HOST (servidor SMTP, por ejemplo Amazon SES)}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_STARTTLS: ${MAIL_STARTTLS:-true}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@digitalmoneyhouse.com}
+      PASSWORD_RESET_URL: ${PUBLIC_URL}/auth/reset-password.html
+    depends_on: [eureka-server]
+
+  account-service:
+    <<: *service-defaults
+    image: ${IMAGE_REGISTRY:-ghcr.io/fedevazquez}/dmh-account-service:${IMAGE_TAG:-latest}
+    environment:
+      <<: [*common-env, *db-env]
+      DB_NAME: dmh_accounts
+      CARD_FINGERPRINT_KEY: ${CARD_FINGERPRINT_KEY:?Definir CARD_FINGERPRINT_KEY en .env}
+    depends_on: [eureka-server]
+
+networks:
+  dmh-net:
+
+volumes:
+  mysql-data:
