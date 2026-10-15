@@ -7,6 +7,7 @@ Uso (con el entorno de Docker levantado):
 
 Solo usa la libreria estandar de Python 3.
 """
+import http.client
 import json
 import quopri
 import re
@@ -33,6 +34,20 @@ def call(method, path, body=None, token=None):
             return response.status, json.loads(response.read() or b"null")
     except urllib.error.HTTPError as error:
         return error.code, error.read().decode()
+    except (urllib.error.URLError, http.client.HTTPException, OSError) as error:
+        # conexion rechazada o cortada: el servicio esta reiniciando
+        return 0, f"{type(error).__name__}: {error}"
+
+
+def call_until_ready(method, path, body=None, token=None, seconds=180):
+    """Repite el request mientras el servicio este reiniciando (sin conexion o 5xx del gateway)."""
+    deadline = time.time() + seconds
+    while True:
+        status, result = call(method, path, body, token)
+        if (status != 0 and status < 500) or time.time() > deadline:
+            return status, result
+        print(f"  {method} {path}: {status}, reintentando...", flush=True)
+        time.sleep(3)
 
 
 def verification_code(email):
@@ -49,6 +64,7 @@ def verification_code(email):
 
 def expect(condition, message):
     if not condition:
+        print(f"::error title=TC-087 persistencia::{message}", flush=True)
         raise SystemExit("FALLÓ: " + message)
 
 
@@ -78,19 +94,20 @@ def prepare():
 def verify():
     with open(STATE, encoding="utf-8") as f:
         state = json.load(f)
-    status, login = None, None
-    for _ in range(60):  # los servicios pueden estar terminando de arrancar
-        status, login = call("POST", "/auth/login", {"email": state["email"], "password": PASSWORD})
-        if status == 200:
-            break
-        time.sleep(2)
+    # despues del reinicio cada servicio tarda en arrancar y en volver a registrarse en Eureka:
+    # mientras tanto el gateway responde 503 o corta la conexion, por eso cada paso reintenta
+    status, login = call_until_ready("POST", "/auth/login", {"email": state["email"], "password": PASSWORD})
     expect(status == 200, f"login después del reinicio: {status} {login}")
-    status, account = call("GET", f"/accounts/{state['accountId']}", token=login["token"])
+    print("  login OK", flush=True)
+    status, account = call_until_ready("GET", f"/accounts/{state['accountId']}", token=login["token"])
     expect(status == 200, f"cuenta: {status} {account}")
     expect(account["cvu"] == state["cvu"], "el CVU cambió")
     expect(float(account["balance"]) == 1234.5, f"saldo después del reinicio: {account['balance']}")
-    _, activity = call("GET", f"/accounts/{state['accountId']}/activity", token=login["token"])
-    expect(len(activity) == 1, f"actividad: {activity}")
+    print(f"  cuenta OK: CVU {account['cvu']}, saldo {account['balance']}", flush=True)
+    status, activity = call_until_ready("GET", f"/accounts/{state['accountId']}/activity", token=login["token"])
+    expect(status == 200 and len(activity) == 1, f"actividad: {status} {activity}")
+    status, user = call_until_ready("GET", f"/users/{state['userId']}", token=login["token"])
+    expect(status == 200 and user["email"] == state["email"], f"usuario: {status} {user}")
     print("OK: después del reinicio el usuario puede entrar y conserva su cuenta, saldo y movimientos.")
 
 
