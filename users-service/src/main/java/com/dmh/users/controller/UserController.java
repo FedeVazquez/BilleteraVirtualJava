@@ -3,6 +3,7 @@ package com.dmh.users.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dmh.users.dto.RegisterRequest;
+import com.dmh.users.dto.UpdateUserRequest;
 import com.dmh.users.dto.UserResponse;
 import com.dmh.users.service.UserService;
 
@@ -41,6 +43,19 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse register(@Valid @RequestBody RegisterRequest request) {
         return userService.register(request);
+    }
+
+    @Operation(summary = "Editar los datos personales",
+            description = "Se pueden modificar nombre, apellido y teléfono. Solo el propio usuario o un administrador.")
+    @ApiResponse(responseCode = "200", description = "Datos actualizados")
+    @ApiResponse(responseCode = "400", description = "Datos inválidos o ningún dato para modificar")
+    @ApiResponse(responseCode = "403", description = "Sin permisos")
+    @ApiResponse(responseCode = "404", description = "Usuario inexistente")
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id()")
+    @PatchMapping("/{id}")
+    public UserResponse update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
+        return userService.update(id, request);
     }
 
     @Operation(summary = "Datos de un usuario",

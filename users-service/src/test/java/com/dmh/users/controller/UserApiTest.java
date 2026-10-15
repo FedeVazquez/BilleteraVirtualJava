@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -248,6 +249,63 @@ class UserApiTest {
                 .content("{\"email\": \"juan@mail.com\", \"code\": \"" + code + "\"}"))
                 .andExpect(status().isNoContent());
         assertThat(userRepository.findByEmail("juan@mail.com").orElseThrow().isEmailVerified()).isTrue();
+    }
+
+    @Test
+    void elUsuarioPuedeEditarNombreApellidoYTelefono() throws Exception {
+        long id = registrar("juan@mail.com", "30123456");
+
+        mockMvc.perform(patch("/users/" + id).header("Authorization", "Bearer " + token(id, "ROLE_USER"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"firstName\": \"Juan Manuel\", \"phone\": \"+5491155556666\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.firstName").value("Juan Manuel"))
+                .andExpect(jsonPath("$.lastName").value("Pérez"))
+                .andExpect(jsonPath("$.phone").value("+5491155556666"))
+                .andExpect(jsonPath("$.email").value("juan@mail.com"));
+    }
+
+    @Test
+    void editarSinDatosOConDatosInvalidosDevuelve400() throws Exception {
+        long id = registrar("juan@mail.com", "30123456");
+        String bearer = "Bearer " + token(id, "ROLE_USER");
+
+        mockMvc.perform(patch("/users/" + id).header("Authorization", bearer)
+                .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(patch("/users/" + id).header("Authorization", bearer)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"firstName\": \"   \", \"phone\": \"123\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.details.length()").value(2));
+    }
+
+    @Test
+    void elEmailYElDniNoSeModificanAunqueVenganEnElJson() throws Exception {
+        long id = registrar("juan@mail.com", "30123456");
+
+        mockMvc.perform(patch("/users/" + id).header("Authorization", "Bearer " + token(id, "ROLE_USER"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"lastName\": \"Gómez\", \"email\": \"otro@mail.com\", \"dni\": \"99999999\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("juan@mail.com"))
+                .andExpect(jsonPath("$.dni").value("30123456"));
+    }
+
+    @Test
+    void unUsuarioNoPuedeEditarLosDatosDeOtro() throws Exception {
+        long id = registrar("juan@mail.com", "30123456");
+
+        mockMvc.perform(patch("/users/" + id).header("Authorization", "Bearer " + token(id + 1, "ROLE_USER"))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"firstName\": \"Intruso\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void elRegistroDevuelveElIdDeLaCuenta() throws Exception {
+        mockMvc.perform(post("/users/register").contentType(MediaType.APPLICATION_JSON)
+                .content(registerJson("juan@mail.com", "30123456")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.accountId").value(1));
     }
 
     private long registrar(String email, String dni) throws Exception {

@@ -88,6 +88,19 @@ public class User {
         this.createdAt = Instant.now();
     }
 
+    /** Actualiza los datos personales editables; los null se dejan como estaban. */
+    public void updateProfile(String newFirstName, String newLastName, String newPhone) {
+        if (newFirstName != null) {
+            this.firstName = newFirstName;
+        }
+        if (newLastName != null) {
+            this.lastName = newLastName;
+        }
+        if (newPhone != null) {
+            this.phone = newPhone;
+        }
+    }
+
     public void addRole(Role role) {
         roles.add(role);
     }

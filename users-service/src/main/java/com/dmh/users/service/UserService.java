@@ -11,6 +11,7 @@ import com.dmh.users.dto.AccountResponse;
 import com.dmh.users.dto.CreateAccountRequest;
 import com.dmh.users.dto.CredentialsResponse;
 import com.dmh.users.dto.RegisterRequest;
+import com.dmh.users.dto.UpdateUserRequest;
 import com.dmh.users.dto.UserResponse;
 import com.dmh.users.exception.ResourceNotFoundException;
 import com.dmh.users.exception.ValidationException;
@@ -71,6 +72,25 @@ public class UserService {
         return userRepository.findById(id)
                 .map(UserResponse::from)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el usuario " + id));
+    }
+
+    /**
+     * Edita los datos personales. Email y DNI no se modifican: identifican al usuario y el email ya
+     * fue verificado.
+     */
+    @Transactional
+    public UserResponse update(Long id, UpdateUserRequest request) {
+        if (request.firstName() == null && request.lastName() == null && request.phone() == null) {
+            throw new ValidationException("Indique al menos un dato para modificar: firstName, lastName o phone");
+        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el usuario " + id));
+        user.updateProfile(trim(request.firstName()), trim(request.lastName()), request.phone());
+        return UserResponse.from(user);
+    }
+
+    private static String trim(String value) {
+        return value == null ? null : value.trim();
     }
 
     @Transactional(readOnly = true)
