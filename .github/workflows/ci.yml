@@ -1,0 +1,90 @@
+# Integracion continua: en cada push y pull request.
+#  1. build-y-tests: compila los 6 modulos y corre los tests unitarios y de integracion.
+#  2. docker-e2e: levanta el entorno completo con Docker Compose (MySQL, MailHog y los 5 servicios),
+#     corre la automatizacion RestAssured y la suite de la planilla contra el, y verifica que los
+#     datos persistan al reiniciar los servicios.
+name: CI
+
+on:
+  push:
+    branches: [main, dev, test]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-y-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Compilar y correr los tests
+        run: ./mvnw -B -ntp verify
+      - name: Guardar los reportes de tests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-junit
+          path: '**/target/surefire-reports/*.txt'
+
+  docker-e2e:
+    needs: build-y-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Construir las imagenes y levantar el entorno
+        run: docker compose up -d --build
+
+      - name: Esperar a que los 4 servicios esten registrados en Eureka y el gateway responda
+        run: |
+          for i in $(seq 1 90); do
+            apps=$(curl -s -H 'Accept: application/json' http://localhost:8761/eureka/apps || true)
+            up=$(echo "$apps" | grep -o '"status":"UP"' | wc -l)
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8090/auth/login \
+              -H 'Content-Type: application/json' -d '{"email":"nadie@mail.com","password":"Clave1234"}' || true)
+            echo "intento $i: instancias UP=$up, login de prueba=$code"
+            if [ "$up" -ge 4 ] && [ "$code" = "404" ]; then exit 0; fi
+            sleep 5
+          done
+          docker compose ps
+          docker compose logs --tail=80
+          exit 1
+
+      - name: Automatizacion RestAssured (regresion completa)
+        run: ./mvnw -B -ntp -pl api-tests test -DskipApiTests=false
+
+      - name: Suite de casos de la planilla
+        run: python3 scripts/run_test_suite.py --mailhog http://localhost:8025 --output resultados-docker.json
+
+      - name: Persistencia en MySQL al reiniciar los servicios (TC-087)
+        run: |
+          python3 scripts/check_persistence.py prepare
+          docker compose restart users-service account-service auth-service
+          python3 scripts/check_persistence.py verify
+
+      - name: Logs de los contenedores
+        if: always()
+        run: docker compose logs --no-color > docker-logs.txt
+
+      - name: Guardar resultados
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-e2e-docker
+          path: |
+            resultados-docker.json
+            docker-logs.txt
+            api-tests/target/surefire-reports/*.txt
+
+      - name: Bajar el entorno
+        if: always()
+        run: docker compose down -v
