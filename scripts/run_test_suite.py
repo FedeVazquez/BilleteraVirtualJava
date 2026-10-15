@@ -1825,6 +1825,10 @@ def main():
             except Exception as error:  # error de conexion, respuesta inesperada, etc.
                 status, actual = "Falló", f"{type(error).__name__}: {error}"
         print(f"  [{status:^9}] {c['id']} {c['titulo']}" + ("" if status == "Pasó" else f"\n              -> {actual}"))
+        if status == "Falló" and os.environ.get("GITHUB_ACTIONS"):
+            # En GitHub Actions cada caso fallido queda como anotacion visible en el resumen de la ejecucion.
+            detail = str(actual).replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+            print(f"::error title={c['id']} {c['titulo']}::{detail}")
         record = {key: value for key, value in c.items() if key not in ("run", "manual")}
         record.update({"estado": status, "obtenido": actual, "fecha": date})
         results.append(record)
