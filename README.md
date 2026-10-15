@@ -79,6 +79,9 @@ Swagger UI unificado: `http://localhost:8090/swagger-ui.html` (arriba a la derec
 | `GET /accounts/{id}/cards/{cardId}` | Bearer | Detalle de una tarjeta. | 200 · 403 · 404 |
 | `POST /accounts/{id}/cards` | Bearer | Asociar una tarjeta. Solo se guardan los últimos 4 dígitos. | 201 · 400 · 403 · 409 ya asociada |
 | `DELETE /accounts/{id}/cards/{cardId}` | Bearer | Eliminar una tarjeta. | 200 · 403 · 404 |
+| `POST /accounts/{id}/transferences` | Bearer | Ingresar dinero desde una tarjeta propia: `{"cardId": 1, "amount": 1500}`. | 201 · 400 · 403 · 404 |
+| `GET /accounts/{id}/activity` | Bearer | Toda la actividad, de la más reciente a la más antigua. Filtros opcionales: `direction` (INCOME/EXPENSE), `from`, `to` (AAAA-MM-DD), `minAmount`, `maxAmount`. | 200 · 400 · 403 |
+| `GET /accounts/{id}/activity/{transactionId}` | Bearer | Detalle de un movimiento. | 200 · 400 · 403 · 404 |
 
 Todos los errores tienen el mismo formato:
 
@@ -118,7 +121,9 @@ Con Docker, agregar `--mailhog http://localhost:8025` a `run_test_suite.py`.
 | [docs/infraestructura.md](docs/infraestructura.md) | Diseño de la infraestructura, red y componentes |
 | [docs/testing/plan-de-pruebas.md](docs/testing/plan-de-pruebas.md) | Plan de pruebas (testing kickoff) |
 | [docs/testing/casos-de-prueba.xlsx](docs/testing/casos-de-prueba.xlsx) | Planilla de casos, suites smoke y regresión, resultados |
-| [docs/testing/testing-exploratorio.md](docs/testing/testing-exploratorio.md) | Sesiones exploratorias y defectos |
+| [docs/testing/testing-exploratorio.md](docs/testing/testing-exploratorio.md) | Testing exploratorio del Sprint 1 |
+| [docs/testing/testing-exploratorio-sprint-3.md](docs/testing/testing-exploratorio-sprint-3.md) | Testing exploratorio del Sprint 3 |
+| [api-tests/README.md](api-tests/README.md) | Automatización con RestAssured |
 
 ## Ramas
 
@@ -133,6 +138,9 @@ Con Docker, agregar `--mailhog http://localhost:8025` a `run_test_suite.py`.
   Windows fallan los sockets de dominio Unix que Java usa internamente. Agregar el argumento de
   JVM `-Djdk.net.unixdomain.tmpdir=Q:\no-existe` (una ruta que no exista) para que use TCP. Con el
   script: `.\scripts\start-local.ps1 -JvmArgs "-Djdk.net.unixdomain.tmpdir=Q:\no-existe"`.
+- **"La ejecución de scripts está deshabilitada"** al correr los `.ps1` con Windows PowerShell:
+  ejecutarlos con `powershell -ExecutionPolicy Bypass -File .\scripts\start-local.ps1`, o habilitar
+  scripts locales una vez con `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 - **El puerto 8080 está ocupado** en esta máquina, por eso el gateway usa el 8090 (`SERVER_PORT`
   o `GATEWAY_PORT` para cambiarlo).
 - **Recién levantado**, el gateway puede responder 503 unos segundos: tarda hasta 30 s en conocer

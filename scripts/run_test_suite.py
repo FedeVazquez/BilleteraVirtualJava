@@ -216,12 +216,33 @@ RESTASSURED = {
     "TC-128": "CardApiTest.datosFaltantes", "TC-129": "CardApiTest.eliminarTarjeta",
     "TC-130": "CardApiTest.eliminarInexistente", "TC-131": "CardApiTest.tarjetasAjenas",
     "TC-132": "CardApiTest.noExponeDatosSensibles",
+    "TC-104": "ActivityApiTest.ultimosCinco",
+    "TC-140": "ActivityApiTest.actividadOrdenada",
+    "TC-141": "ActivityApiTest.actividadVacia",
+    "TC-142": "ActivityApiTest.actividadAjena",
+    "TC-143": "ActivityApiTest.actividadSinToken",
+    "TC-144": "ActivityApiTest.detalle",
+    "TC-145": "ActivityApiTest.detalleInexistente",
+    "TC-146": "ActivityApiTest.detalleAjeno",
+    "TC-147": "ActivityApiTest.detalleIdInvalido",
+    "TC-150": "ActivityApiTest.ingresarDinero",
+    "TC-151": "ActivityApiTest.tarjetaDeOtraCuenta",
+    "TC-152": "ActivityApiTest.montosInvalidos",
+    "TC-153": "ActivityApiTest.tiposIncorrectos",
+    "TC-154": "ActivityApiTest.sinTarjeta",
+    "TC-155": "ActivityApiTest.cuentaAjena",
+    "TC-156": "ActivityApiTest.ingresoVisibleEnActividad",
+    "TC-160": "ActivityApiTest.filtroPorMonto",
+    "TC-161": "ActivityApiTest.filtroPorTipo",
+    "TC-162": "ActivityApiTest.filtroPorPeriodo",
+    "TC-163": "ActivityApiTest.filtrosInvalidos",
 }
 
 STORY_SPRINT = {
     "HU1 Registro": "1", "HU2 Login": "1", "HU3 Logout": "1", "Opcional: verificación de email": "1",
     "Opcional: recupero de contraseña": "1", "Infraestructura": "1",
     "S2 Dashboard": "2", "S2 Mi perfil": "2", "S2 Tarjetas": "2",
+    "S3 Mi actividad": "3", "S3 Ingreso de dinero": "3", "S3 Opcional: filtros": "3",
 }
 
 HU1 = "HU1 Registro"
@@ -1237,6 +1258,284 @@ def tc132():
     check(number not in response.text and number not in listing.text, "se expone el número completo")
     check('"cvv"' not in response.text and '"cvv"' not in listing.text, "se expone el código de seguridad")
     return f"solo se expone {response.json['number']}"
+
+
+# ---- Sprint 3: actividad e ingreso de dinero
+
+S3_ACTIVITY = "S3 Mi actividad"
+S3_DEPOSIT = "S3 Ingreso de dinero"
+S3_FILTERS = "S3 Opcional: filtros"
+
+
+def deposit(account_id, token, card_id, amount):
+    return expect_status(api("POST", f"/accounts/{account_id}/transferences", {"cardId": card_id, "amount": amount},
+                             token=token), 201).json
+
+
+def balance_of(account_id, token):
+    return float(expect_status(api("GET", f"/accounts/{account_id}", token=token), 200).json["balance"])
+
+
+def user_with_card():
+    data, created, token = logged_user()
+    card = add_card(created["accountId"], token)
+    return created["accountId"], token, card["id"]
+
+
+@case("TC-104", S2_DASH, "Los últimos movimientos son 5, del más reciente al más antiguo",
+      "Cuenta con 7 ingresos de $1 a $7.", "GET /accounts/{accountId}/transactions.",
+      "HTTP 200 con 5 movimientos: 7, 6, 5, 4 y 3.", "Positivo", "Alta", REGRESSION,
+      "Sprint3ApiTest.losUltimosMovimientosSonSolo5")
+def tc104():
+    account_id, token, card_id = user_with_card()
+    for amount in range(1, 8):
+        deposit(account_id, token, card_id, amount)
+    amounts = [float(t["amount"]) for t in expect_status(api("GET", f"/accounts/{account_id}/transactions", token=token), 200).json]
+    check(amounts == [7, 6, 5, 4, 3], f"montos: {amounts}")
+    return f"HTTP 200: {amounts}"
+
+
+@case("TC-140", S3_ACTIVITY, "Toda la actividad, de la más reciente a la más antigua", "Cuenta con 3 ingresos.",
+      "GET /accounts/{accountId}/activity con el token del dueño.",
+      "HTTP 200 con los 3 movimientos, el más reciente primero.", "Positivo", "Alta", SMOKE,
+      "Sprint3ApiTest.laActividadListaTodoDelMasRecienteAlMasAntiguo")
+def tc140():
+    account_id, token, card_id = user_with_card()
+    ids = [deposit(account_id, token, card_id, amount)["id"] for amount in (10, 20, 30)]
+    listed = [t["id"] for t in expect_status(api("GET", f"/accounts/{account_id}/activity", token=token), 200).json]
+    check(listed == list(reversed(ids)), f"orden: {listed}")
+    return f"HTTP 200: ids {listed}"
+
+
+@case("TC-141", S3_ACTIVITY, "Actividad de una cuenta sin movimientos", "Cuenta nueva.",
+      "GET /accounts/{accountId}/activity.", "HTTP 200 con una lista vacía.", "Borde", "Media", REGRESSION)
+def tc141():
+    _, created, token = logged_user()
+    response = expect_status(api("GET", f"/accounts/{created['accountId']}/activity", token=token), 200)
+    check(response.json == [], f"lista: {response.json}")
+    return "HTTP 200: []"
+
+
+@case("TC-142", S3_ACTIVITY, "Actividad de otra cuenta", "Dos usuarios logueados.",
+      "Con el token de A, GET /accounts/{accountId de B}/activity.", "HTTP 403.", "Seguridad", "Alta", REGRESSION,
+      "Sprint3ApiTest.laActividadDeOtraCuentaDevuelve403")
+def tc142():
+    _, _, token_a = logged_user()
+    _, user_b, _ = logged_user()
+    expect_status(api("GET", f"/accounts/{user_b['accountId']}/activity", token=token_a), 403)
+    return "HTTP 403"
+
+
+@case("TC-143", S3_ACTIVITY, "Actividad sin token", "—", "GET /accounts/1/activity sin header Authorization.",
+      "HTTP 401.", "Seguridad", "Alta", REGRESSION)
+def tc143():
+    expect_status(api("GET", "/accounts/1/activity"), 401)
+    return "HTTP 401"
+
+
+@case("TC-144", S3_ACTIVITY, "Detalle de una actividad", "Cuenta con un ingreso de $250.",
+      "GET /accounts/{accountId}/activity/{id del movimiento}.",
+      "HTTP 200 con tipo, monto, fecha, descripción y tarjeta.", "Positivo", "Alta", SMOKE,
+      "Sprint3ApiTest.detalleDeUnaActividad")
+def tc144():
+    account_id, token, card_id = user_with_card()
+    transaction = deposit(account_id, token, card_id, 250)
+    detail = expect_status(api("GET", f"/accounts/{account_id}/activity/{transaction['id']}", token=token), 200).json
+    check(detail["id"] == transaction["id"] and float(detail["amount"]) == 250 and detail["cardLastFour"], f"detalle: {detail}")
+    return f"HTTP 200: {detail['type']} ${detail['amount']} - {detail['description']}"
+
+
+@case("TC-145", S3_ACTIVITY, "Detalle de una actividad inexistente", "Usuario logueado.",
+      "GET /accounts/{accountId}/activity/999999.", "HTTP 404.", "Negativo", "Media", REGRESSION,
+      "Sprint3ApiTest.detalleInexistenteOdeOtraCuentaDevuelve404")
+def tc145():
+    _, created, token = logged_user()
+    response = expect_status(api("GET", f"/accounts/{created['accountId']}/activity/999999", token=token), 404)
+    return f"HTTP 404: {response.message}"
+
+
+@case("TC-146", S3_ACTIVITY, "Detalle de un movimiento de otra cuenta", "A tiene un movimiento; B logueado.",
+      "Con el token de B: pedir el movimiento de A usando la cuenta de B, y usando la cuenta de A.",
+      "Desde la cuenta de B: HTTP 404. Usando la cuenta de A: HTTP 403.", "Seguridad", "Alta", REGRESSION,
+      "Sprint3ApiTest.detalleInexistenteOdeOtraCuentaDevuelve404")
+def tc146():
+    account_a, token_a, card_a = user_with_card()
+    transaction = deposit(account_a, token_a, card_a, 100)
+    _, user_b, token_b = logged_user()
+    expect_status(api("GET", f"/accounts/{user_b['accountId']}/activity/{transaction['id']}", token=token_b), 404)
+    expect_status(api("GET", f"/accounts/{account_a}/activity/{transaction['id']}", token=token_b), 403)
+    return "desde la cuenta propia 404; usando la cuenta ajena 403"
+
+
+@case("TC-147", S3_ACTIVITY, "Detalle con id inválido", "Usuario logueado.", "GET /accounts/{accountId}/activity/abc.",
+      "HTTP 400.", "Negativo", "Baja", REGRESSION)
+def tc147():
+    _, created, token = logged_user()
+    expect_status(api("GET", f"/accounts/{created['accountId']}/activity/abc", token=token), 400)
+    return "HTTP 400"
+
+
+@case("TC-150", S3_DEPOSIT, "Ingresar dinero desde una tarjeta propia", "Usuario con una tarjeta asociada y saldo 0.",
+      "POST /accounts/{accountId}/transferences con {\"cardId\": id, \"amount\": 1500.50}. Luego GET /accounts/{accountId}.",
+      "HTTP 201 con el movimiento (DEPOSIT, INCOME, 1500.50). El saldo pasa a 1500.50.", "Positivo", "Alta", SMOKE,
+      "Sprint3ApiTest.ingresarDineroDesdeUnaTarjetaDevuelve201YSumaAlSaldo")
+def tc150():
+    account_id, token, card_id = user_with_card()
+    transaction = deposit(account_id, token, card_id, 1500.50)
+    check(transaction["type"] == "DEPOSIT" and transaction["direction"] == "INCOME", f"movimiento: {transaction}")
+    balance = balance_of(account_id, token)
+    check(balance == 1500.50, f"saldo: {balance}")
+    return f"HTTP 201; saldo {balance}"
+
+
+@case("TC-151", S3_DEPOSIT, "Ingresar con una tarjeta de otra cuenta", "A tiene una tarjeta; B logueado.",
+      "Con el token de B, POST /accounts/{accountId de B}/transferences con la tarjeta de A.",
+      "HTTP 404 y el saldo de B no cambia.", "Seguridad", "Alta", REGRESSION,
+      "Sprint3ApiTest.ingresarConUnaTarjetaDeOtraCuentaDevuelve404YNoCambiaElSaldo")
+def tc151():
+    _, _, card_a = user_with_card()
+    _, user_b, token_b = logged_user()
+    expect_status(api("POST", f"/accounts/{user_b['accountId']}/transferences", {"cardId": card_a, "amount": 100}, token=token_b), 404)
+    check(balance_of(user_b["accountId"], token_b) == 0, "el saldo de B cambió")
+    return "HTTP 404; saldo de B sin cambios"
+
+
+@case("TC-152", S3_DEPOSIT, "Montos inválidos", "Usuario con una tarjeta.",
+      "Ingresar 0, -10, 10.555 y 1000000.01.", "HTTP 400 en los cuatro casos; el saldo no cambia.", "Negativo", "Alta",
+      REGRESSION, "Sprint3ApiTest.montosInvalidosDevuelven400")
+def tc152():
+    account_id, token, card_id = user_with_card()
+    for amount in (0, -10, 10.555, 1000000.01):
+        expect_status(api("POST", f"/accounts/{account_id}/transferences", {"cardId": card_id, "amount": amount}, token=token), 400)
+    check(balance_of(account_id, token) == 0, "el saldo cambió")
+    return "HTTP 400 en los 4 montos; saldo 0"
+
+
+@case("TC-153", S3_DEPOSIT, "Monto o tarjeta enviados como texto", "Usuario con una tarjeta.",
+      "Ingresar con \"amount\": \"100\" y con \"cardId\": \"<id>\" (entre comillas).", "HTTP 400 en ambos.",
+      "Negativo", "Media", REGRESSION, "Sprint3ApiTest.montoYTarjetaEnviadosComoTextoDevuelven400")
+def tc153():
+    account_id, token, card_id = user_with_card()
+    expect_status(api("POST", f"/accounts/{account_id}/transferences", {"cardId": card_id, "amount": "100"}, token=token), 400)
+    expect_status(api("POST", f"/accounts/{account_id}/transferences", {"cardId": str(card_id), "amount": 100}, token=token), 400)
+    return "HTTP 400 en ambos"
+
+
+@case("TC-154", S3_DEPOSIT, "Ingreso sin indicar la tarjeta", "Usuario logueado.",
+      "POST /accounts/{accountId}/transferences con {\"amount\": 100}.", "HTTP 400.", "Negativo", "Media", REGRESSION,
+      "Sprint3ApiTest.sinTarjetaNiDestinoOConAmbosDevuelve400")
+def tc154():
+    _, created, token = logged_user()
+    response = expect_status(api("POST", f"/accounts/{created['accountId']}/transferences", {"amount": 100}, token=token), 400)
+    return "HTTP 400: " + "; ".join(response.json["details"])
+
+
+@case("TC-155", S3_DEPOSIT, "No se puede ingresar dinero en una cuenta ajena", "A tiene una tarjeta; B logueado.",
+      "Con el token de B, POST /accounts/{accountId de A}/transferences.", "HTTP 403.", "Seguridad", "Alta", REGRESSION,
+      "Sprint3ApiTest.noSePuedeIngresarDineroEnUnaCuentaAjena")
+def tc155():
+    account_a, _, card_a = user_with_card()
+    _, _, token_b = logged_user()
+    expect_status(api("POST", f"/accounts/{account_a}/transferences", {"cardId": card_a, "amount": 100}, token=token_b), 403)
+    return "HTTP 403"
+
+
+@case("TC-156", S3_DEPOSIT, "El ingreso aparece en la actividad y en los últimos movimientos", "Usuario con una tarjeta.",
+      "Ingresar $250 y consultar /activity y /transactions.", "El movimiento es el primero de ambas listas.",
+      "Positivo", "Alta", REGRESSION)
+def tc156():
+    account_id, token, card_id = user_with_card()
+    transaction = deposit(account_id, token, card_id, 250)
+    activity = expect_status(api("GET", f"/accounts/{account_id}/activity", token=token), 200).json
+    last = expect_status(api("GET", f"/accounts/{account_id}/transactions", token=token), 200).json
+    check(activity[0]["id"] == transaction["id"] and last[0]["id"] == transaction["id"], "no aparece primero")
+    return "primero en /activity y en /transactions"
+
+
+@case("TC-157", S3_DEPOSIT, "Una tarjeta eliminada no se puede usar y sus ingresos conservan los datos",
+      "Usuario con un ingreso hecho con una tarjeta.",
+      "Eliminar la tarjeta, intentar otro ingreso con ella y consultar el detalle del ingreso anterior.",
+      "Nuevo ingreso: HTTP 404. El detalle anterior sigue mostrando los últimos 4 dígitos de la tarjeta.",
+      "Borde", "Media", REGRESSION)
+def tc157():
+    account_id, token, card_id = user_with_card()
+    transaction = deposit(account_id, token, card_id, 77)
+    expect_status(api("DELETE", f"/accounts/{account_id}/cards/{card_id}", token=token), 200)
+    expect_status(api("POST", f"/accounts/{account_id}/transferences", {"cardId": card_id, "amount": 5}, token=token), 404)
+    detail = expect_status(api("GET", f"/accounts/{account_id}/activity/{transaction['id']}", token=token), 200).json
+    check(detail["cardLastFour"] == transaction["cardLastFour"], f"detalle: {detail}")
+    return f"nuevo ingreso 404; el detalle conserva la tarjeta ...{detail['cardLastFour']}"
+
+
+@case("TC-158", S3_DEPOSIT, "Ingresos simultáneos no pierden dinero", "Usuario con una tarjeta.",
+      "Enviar 10 ingresos de $100 al mismo tiempo (10 hilos).", "Los 10 responden 201 y el saldo final es $1000.",
+      "Borde", "Alta", REGRESSION, "Sprint3ApiTest.ingresosSimultaneosNoPierdenDinero")
+def tc158():
+    import threading
+    account_id, token, card_id = user_with_card()
+    statuses = []
+    threads = [threading.Thread(target=lambda: statuses.append(
+        api("POST", f"/accounts/{account_id}/transferences", {"cardId": card_id, "amount": 100}, token=token).status))
+        for _ in range(10)]
+    [t.start() for t in threads]
+    [t.join() for t in threads]
+    balance = balance_of(account_id, token)
+    check(statuses == [201] * 10 and balance == 1000, f"respuestas {statuses}, saldo {balance}")
+    return f"10 respuestas 201; saldo {balance}"
+
+
+@case("TC-160", S3_FILTERS, "Filtrar la actividad por rango de monto", "Cuenta con ingresos de $500, $3.000 y $150.000.",
+      "GET /accounts/{accountId}/activity?minAmount=1000&maxAmount=5000 y ?minAmount=100000.",
+      "Primer filtro: solo $3.000. Segundo: solo $150.000.", "Positivo", "Media", REGRESSION,
+      "Sprint3ApiTest.filtrosPorMontoTipoYFecha")
+def tc160():
+    account_id, token, card_id = user_with_card()
+    for amount in (500, 3000, 150000):
+        deposit(account_id, token, card_id, amount)
+    first = [float(t["amount"]) for t in expect_status(api("GET", f"/accounts/{account_id}/activity?minAmount=1000&maxAmount=5000", token=token), 200).json]
+    second = [float(t["amount"]) for t in expect_status(api("GET", f"/accounts/{account_id}/activity?minAmount=100000", token=token), 200).json]
+    check(first == [3000] and second == [150000], f"{first} / {second}")
+    return f"$1.000-$5.000: {first}; más de $100.000: {second}"
+
+
+@case("TC-161", S3_FILTERS, "Filtrar la actividad por ingreso o egreso", "Cuenta con un ingreso.",
+      "GET /accounts/{accountId}/activity?direction=income y ?direction=EXPENSE.",
+      "INCOME (sin importar mayúsculas): 1 movimiento. EXPENSE: lista vacía.", "Positivo", "Media", REGRESSION,
+      "Sprint3ApiTest.elFiltroDeTipoNoDistingueMayusculasYLosErroresNoExponenClasesInternas")
+def tc161():
+    account_id, token, card_id = user_with_card()
+    deposit(account_id, token, card_id, 100)
+    income = expect_status(api("GET", f"/accounts/{account_id}/activity?direction=income", token=token), 200).json
+    expense = expect_status(api("GET", f"/accounts/{account_id}/activity?direction=EXPENSE", token=token), 200).json
+    check(len(income) == 1 and expense == [], f"{income} / {expense}")
+    return "ingresos: 1; egresos: 0"
+
+
+@case("TC-162", S3_FILTERS, "Filtrar la actividad por período", "Cuenta con un ingreso de hoy.",
+      "GET /accounts/{accountId}/activity?from=2000-01-01&to=2000-12-31 y ?from=2000-01-01.",
+      "Primer período: lista vacía. Segundo: el ingreso.", "Positivo", "Media", REGRESSION,
+      "Sprint3ApiTest.filtrosPorMontoTipoYFecha")
+def tc162():
+    account_id, token, card_id = user_with_card()
+    deposit(account_id, token, card_id, 100)
+    old = expect_status(api("GET", f"/accounts/{account_id}/activity?from=2000-01-01&to=2000-12-31", token=token), 200).json
+    since = expect_status(api("GET", f"/accounts/{account_id}/activity?from=2000-01-01", token=token), 200).json
+    check(old == [] and len(since) == 1, f"{old} / {since}")
+    return "año 2000: 0 movimientos; desde 2000: 1"
+
+
+@case("TC-163", S3_FILTERS, "Filtros inválidos", "Usuario logueado.",
+      "from posterior a to; minAmount mayor que maxAmount; minAmount=abc.",
+      "HTTP 400 en los tres casos, sin nombres de clases internas en el mensaje.", "Negativo", "Media", REGRESSION,
+      "Sprint3ApiTest.filtrosInvalidosDevuelven400")
+def tc163():
+    _, created, token = logged_user()
+    base = f"/accounts/{created['accountId']}/activity"
+    expect_status(api("GET", base + "?from=2026-10-31&to=2026-10-01", token=token), 400)
+    expect_status(api("GET", base + "?minAmount=5000&maxAmount=1000", token=token), 400)
+    response = expect_status(api("GET", base + "?minAmount=abc", token=token), 400)
+    check("java." not in response.text, f"el mensaje expone clases internas: {response.text}")
+    return "HTTP 400 en los tres; " + response.json["details"][0]
 
 
 # ---------------------------------------------------------------- ejecucion
