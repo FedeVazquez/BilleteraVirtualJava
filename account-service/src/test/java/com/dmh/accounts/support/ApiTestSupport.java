@@ -1,5 +1,7 @@
 package com.dmh.accounts.support;
 
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -8,15 +10,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.dmh.accounts.client.UsersClient;
 import com.dmh.accounts.security.InternalApiKeyFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +43,9 @@ public abstract class ApiTestSupport {
 
     @Autowired
     protected MockMvc mockMvc;
+    /** users-service no esta levantado en los tests: se simula su respuesta con el nombre del titular. */
+    @MockitoBean
+    protected UsersClient usersClient;
     @Autowired
     protected ObjectMapper objectMapper;
 
@@ -51,6 +59,12 @@ public abstract class ApiTestSupport {
         public String bearer() {
             return "Bearer " + token;
         }
+    }
+
+    @BeforeEach
+    void stubUsersService() {
+        when(usersClient.summary(anyLong()))
+                .thenAnswer(invocation -> new UsersClient.UserSummary(invocation.getArgument(0), "Titular", "N" + invocation.getArgument(0)));
     }
 
     protected TestAccount newAccount() throws Exception {
