@@ -1838,7 +1838,8 @@ def main():
         totals[record["estado"]] = totals.get(record["estado"], 0) + 1
     print("\nResumen: " + ", ".join(f"{count} {state}" for state, count in sorted(totals.items())))
 
-    os.makedirs(os.path.dirname(ARGS.output), exist_ok=True)
+    if os.path.dirname(ARGS.output):
+        os.makedirs(os.path.dirname(ARGS.output), exist_ok=True)
     with open(ARGS.output, "w", encoding="utf-8") as output:
         json.dump({"suite": ARGS.suite, "ejecutado": datetime.now().isoformat(timespec="seconds"),
                    "entorno": ARGS.gateway, "resumen": totals, "casos": results}, output, ensure_ascii=False, indent=2)
