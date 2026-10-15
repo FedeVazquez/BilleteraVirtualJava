@@ -1,9 +1,9 @@
 {
   "suite": "regression",
-  "ejecutado": "2026-10-02T17:04:15",
+  "ejecutado": "2026-10-15T12:24:08",
   "entorno": "http://localhost:8090",
   "resumen": {
-    "Pasó": 70,
+    "Pasó": 97,
     "Bloqueado": 2
   },
   "casos": [
@@ -13,15 +13,17 @@
       "titulo": "Registro exitoso con datos válidos",
       "precondiciones": "Email y DNI no registrados.",
       "pasos": "POST /users/register con nombre, apellido, DNI, email, teléfono y contraseña válidos.",
-      "esperado": "HTTP 201. JSON con id, firstName, lastName, dni, email, phone, cvu y alias.",
+      "esperado": "HTTP 201. JSON con id, firstName, lastName, dni, email, phone, accountId, cvu y alias.",
       "tipo": "Positivo",
       "prioridad": "Alta",
       "suite": "Smoke + Regresión",
       "junit": "UserApiTest.registroCorrectoDevuelve201ConCvuYAliasYSinLaClave",
+      "sprint": "1",
+      "restassured": "AuthApiTest.registroExitoso",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 201, id=1, cvu=8520511586651591586037, alias=lapiz.cima.delta",
-      "fecha": "02/10/2026"
+      "obtenido": "HTTP 201, id=78, cvu=6882201591361058659598, alias=playa.aire.junco",
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-002",
@@ -34,10 +36,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "CvuGeneratorTest.generaVeintidosDigitosNumericos",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "cvu=7305297803352856981667 (22 dígitos)",
-      "fecha": "02/10/2026"
+      "obtenido": "cvu=0412676960179821491199 (22 dígitos)",
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-003",
@@ -50,10 +54,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "AliasGeneratorTest.generaTresPalabrasDistintasSeparadasPorPunto",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "alias=arena.playa.roca (las 3 palabras están en alias-words.txt)",
-      "fecha": "02/10/2026"
+      "obtenido": "alias=viento.jardin.rocio (las 3 palabras están en alias-words.txt)",
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-004",
@@ -66,10 +72,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "CvuGeneratorTest.generaValoresDistintos",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "5 registros: 5 CVU distintos y 5 alias distintos",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-005",
@@ -82,10 +90,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "UserApiTest.registroCorrectoDevuelve201ConCvuYAliasYSinLaClave",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 201 sin campo password; campos: alias, cvu, dni, email, firstName, id, lastName, phone",
-      "fecha": "02/10/2026"
+      "obtenido": "HTTP 201 sin campo password; campos: accountId, alias, cvu, dni, email, firstName, id, lastName, phone",
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-006",
@@ -98,10 +108,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "UserApiTest.registroConEmailRepetidoDevuelve400",
+      "sprint": "1",
+      "restassured": "AuthApiTest.emailDuplicado",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: Ya existe un usuario registrado con ese email",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-007",
@@ -114,10 +126,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "UserApiTest.registroConEmailRepetidoDevuelve400",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: Ya existe un usuario registrado con ese email",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-008",
@@ -130,10 +144,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "UserServiceTest.rechazaUnDniYaRegistrado",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: Ya existe un usuario registrado con ese DNI",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-009",
@@ -146,10 +162,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "UserApiTest.registroConDatosInvalidosDevuelve400ConElDetallePorCampo",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400 con detalle de: dni, email, firstName, lastName, password, phone",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-010",
@@ -162,10 +180,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "UserApiTest.registroConDatosInvalidosDevuelve400ConElDetallePorCampo",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: email: El email no tiene un formato válido",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-011",
@@ -178,10 +198,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "UserApiTest.registroRechazaEmailSinDominioCompletoNombreConSimbolosYDniNumerico",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: email: El email no tiene un formato válido",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-012",
@@ -194,10 +216,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "UserApiTest.registroConDatosInvalidosDevuelve400ConElDetallePorCampo",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: password: La contraseña debe tener entre 8 y 72 caracteres",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-013",
@@ -210,10 +234,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "UserApiTest.registroConDatosInvalidosDevuelve400ConElDetallePorCampo",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: password: La contraseña debe tener entre 8 y 72 caracteres",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-014",
@@ -226,10 +252,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "UserApiTest.registroConDatosInvalidosDevuelve400ConElDetallePorCampo",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: dni: El DNI debe tener 7 u 8 dígitos",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-015",
@@ -242,10 +270,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "UserApiTest.registroConDatosInvalidosDevuelve400ConElDetallePorCampo",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: dni: El DNI debe tener 7 u 8 dígitos",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-016",
@@ -258,10 +288,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "UserApiTest.registroRechazaEmailSinDominioCompletoNombreConSimbolosYDniNumerico",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: La petición está mal formada",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-017",
@@ -274,10 +306,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "UserApiTest.registroConDatosInvalidosDevuelve400ConElDetallePorCampo",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: phone: El teléfono debe tener entre 8 y 15 dígitos",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-018",
@@ -290,10 +324,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "UserApiTest.registroRechazaEmailSinDominioCompletoNombreConSimbolosYDniNumerico",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: firstName: El nombre solo puede tener letras, espacios, apóstrofes y guiones",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-019",
@@ -306,10 +342,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "UserApiTest.registroConDatosInvalidosDevuelve400ConElDetallePorCampo",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: firstName: El nombre no puede superar los 60 caracteres",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-020",
@@ -322,10 +360,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "UserApiTest.registroAceptaNombresConAcentosEniesApostrofesYGuiones",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 201: María José Núñez O'Higgins-Peña",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-021",
@@ -338,10 +378,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "UserApiTest.registroConJsonMalFormadoDevuelve400",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: La petición está mal formada",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-022",
@@ -354,10 +396,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 201 con id=14; login sin verificar: HTTP 403 (emailVerified ignorado)",
-      "fecha": "02/10/2026"
+      "obtenido": "HTTP 201 con id=91; login sin verificar: HTTP 403 (emailVerified ignorado)",
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-023",
@@ -370,10 +414,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "AccountApiTest.elDuenioPuedeConsultarSuCuenta",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 200: cvu y alias coinciden, balance=0.0",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-024",
@@ -386,6 +432,8 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "UserApiTest.siFallaLaCreacionDeLaCuentaDevuelve500YNoQuedaElUsuarioGuardado",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Manual",
       "estado": "Pasó",
       "obtenido": "HTTP 500 \"Ocurrió un error interno. Intente nuevamente más tarde.\"; login posterior: HTTP 404; no se envió mail.",
@@ -402,10 +450,12 @@
       "prioridad": "Baja",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 415: Unsupported Media Type",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-030",
@@ -418,10 +468,12 @@
       "prioridad": "Alta",
       "suite": "Smoke + Regresión",
       "junit": "AuthApiTest.loginCorrectoDevuelve200ConUnTokenValido",
+      "sprint": "1",
+      "restassured": "AuthApiTest.loginExitoso",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 200: token JWT, tokenType=Bearer, expiresIn=3600 s",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-031",
@@ -434,10 +486,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "JwtServiceTest.elTokenLlevaElUsuarioElEmailLosRolesYUnIdentificadorUnico",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "sub=17, roles=['ROLE_USER'], vence en 60 min",
-      "fecha": "02/10/2026"
+      "obtenido": "sub=94, roles=['ROLE_USER'], vence en 60 min",
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-032",
@@ -450,10 +504,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "AuthApiTest.loginDeUnUsuarioInexistenteDevuelve404",
+      "sprint": "1",
+      "restassured": "AuthApiTest.loginUsuarioInexistente",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 404: No existe un usuario con ese email",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-033",
@@ -466,10 +522,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "AuthApiTest.loginConContraseniaIncorrectaDevuelve400",
+      "sprint": "1",
+      "restassured": "AuthApiTest.loginClaveIncorrecta",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: Contraseña incorrecta",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-034",
@@ -482,10 +540,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "AuthApiTest.loginSinDatosDevuelve400",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: email: El email es obligatorio; password: La contraseña es obligatoria",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-035",
@@ -498,10 +558,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 200 con token",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-036",
@@ -514,10 +576,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: Contraseña incorrecta",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-037",
@@ -530,10 +594,12 @@
       "prioridad": "Alta",
       "suite": "Smoke + Regresión",
       "junit": "UserApiTest.elUsuarioPuedeConsultarSusPropiosDatos",
+      "sprint": "1",
+      "restassured": "AuthApiTest.accesoConToken",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "HTTP 200: Juan Pérez <qa929n34@mail.com>",
-      "fecha": "02/10/2026"
+      "obtenido": "HTTP 200: Juan Pérez <qa857n34@mail.com>",
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-038",
@@ -546,10 +612,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "5 peticiones seguidas con el mismo token: todas HTTP 200",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-039",
@@ -562,10 +630,12 @@
       "prioridad": "Alta",
       "suite": "Smoke + Regresión",
       "junit": "AuthenticationFilterTest.unaRutaProtegidaSinTokenDevuelve401SinLlegarAlServicio",
+      "sprint": "1",
+      "restassured": "AuthApiTest.accesoSinToken",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 401: Falta el header Authorization: Bearer <token>",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-040",
@@ -578,10 +648,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "JwtServiceTest.rechazaUnTokenAdulterado",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 401: Token inválido, vencido o sesión cerrada",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-041",
@@ -594,10 +666,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 401: Token inválido, vencido o sesión cerrada",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-042",
@@ -610,10 +684,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "JwtServiceTest.rechazaUnTokenFirmadoConOtroSecreto",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 401: Token inválido, vencido o sesión cerrada",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-043",
@@ -626,10 +702,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "JwtServiceTest.rechazaUnTokenVencido",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 401: Token inválido, vencido o sesión cerrada",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-044",
@@ -642,10 +720,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "UserApiTest.unUsuarioNoPuedeConsultarLosDatosDeOtro",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 403 en /users/{id ajeno} y en /accounts/user/{id ajeno}",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-045",
@@ -658,6 +738,8 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "AuthenticationFilterTest.siAuthServiceNoRespondeDevuelve503",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Manual",
       "estado": "Pasó",
       "obtenido": "HTTP 503 \"El servicio de autenticación no está disponible. Intente nuevamente más tarde.\"",
@@ -674,10 +756,12 @@
       "prioridad": "Alta",
       "suite": "Smoke + Regresión",
       "junit": "AuthApiTest.despuesDelLogoutElTokenDejaDeSerValido",
+      "sprint": "1",
+      "restassured": "AuthApiTest.logout",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 200: Sesión cerrada",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-051",
@@ -690,10 +774,12 @@
       "prioridad": "Alta",
       "suite": "Smoke + Regresión",
       "junit": "AuthApiTest.despuesDelLogoutElTokenDejaDeSerValido",
+      "sprint": "1",
+      "restassured": "AuthApiTest.tokenInvalidadoTrasLogout",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "antes del logout HTTP 200; después HTTP 401: Token inválido, vencido o sesión cerrada",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-052",
@@ -706,10 +792,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "AuthApiTest.logoutSinTokenOConTokenInvalidoDevuelve401",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 401: Falta el header Authorization: Bearer <token>",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-053",
@@ -722,10 +810,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "AuthApiTest.logoutSinTokenOConTokenInvalidoDevuelve401",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 401: Token inválido, vencido o sesión cerrada",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-054",
@@ -738,10 +828,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "AuthApiTest.elLogoutInvalidaSoloEseTokenYEsIdempotente",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "token 1: HTTP 401; token 2: HTTP 200",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-055",
@@ -754,10 +846,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "nuevo login HTTP 200 y el token nuevo accede (HTTP 200)",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-056",
@@ -770,10 +864,12 @@
       "prioridad": "Baja",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 405 y el token sigue activo",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-060",
@@ -786,10 +882,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "UserApiTest.elRegistroEnviaPorMailElCodigoDeVerificacion",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "mail \"Digital Money House - Verificá tu email\" con código de 6 dígitos (861601)",
-      "fecha": "02/10/2026"
+      "obtenido": "mail \"Digital Money House - Verificá tu email\" con código de 6 dígitos (388095)",
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-061",
@@ -802,10 +900,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "AuthApiTest.loginSinVerificarElEmailDevuelve403",
+      "sprint": "1",
+      "restassured": "AuthApiTest.loginSinVerificar",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 403: Debe verificar su email antes de ingresar. Revise el código que le enviamos por correo.",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-062",
@@ -818,10 +918,12 @@
       "prioridad": "Alta",
       "suite": "Smoke + Regresión",
       "junit": "UserApiTest.verificarElEmailConElCodigoRecibido",
+      "sprint": "1",
+      "restassured": "AuthApiTest.verificacionDeEmail",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "verificación HTTP 200; primer login HTTP 200 con token",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-063",
@@ -834,10 +936,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "EmailVerificationServiceTest.conUnCodigoIncorrectoRechazaYCuentaElIntento",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: El código de verificación es incorrecto; el login sigue en 403",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-064",
@@ -850,10 +954,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "AuthApiTest.verificarEmailConUnCodigoQueNoTieneSeisDigitosDevuelve400SinLlamarAUsersService",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: code: El código debe tener 6 dígitos",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-065",
@@ -866,10 +972,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "reenvío HTTP 200; código viejo HTTP 400; código nuevo HTTP 200",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-066",
@@ -882,10 +990,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "EmailVerificationServiceTest.alSuperarLosIntentosRechazaInclusoElCodigoCorrecto",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "6.º intento con el código correcto: HTTP 400 (Se superó la cantidad de intentos. Solicite un código nuevo.); con código reenviado: HTTP 200",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-067",
@@ -898,10 +1008,12 @@
       "prioridad": "Baja",
       "suite": "Regresión",
       "junit": "EmailVerificationServiceTest.verificarUnEmailInexistenteLanzaResourceNotFound",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 404: No existe un usuario con ese email",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-070",
@@ -914,10 +1026,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "PasswordResetServiceTest.alPedirElRecuperoGuardaSoloElHashDelTokenYPublicaElEvento",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 200; mail con link http://localhost:8090/auth/reset-password.html?token=<token de 43 caracteres>",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-071",
@@ -930,10 +1044,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "PasswordResetServiceTest.siElEmailNoExisteNoHaceNadaYNoInformaError",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "misma respuesta en ambos casos (HTTP 200: Si el email está registrado, le enviamos un enlace para recuperar su contraseña.); sin mail al no registrado",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-072",
@@ -946,10 +1062,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "AuthApiTest.laPantallaParaElegirLaNuevaContraseniaEstaDisponible",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 200: página HTML con los campos password y passwordConfirm",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-073",
@@ -962,10 +1080,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "PasswordResetServiceTest.conUnTokenValidoCambiaLaClaveYElTokenQuedaInutilizado",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "cambio HTTP 200; login clave vieja HTTP 400; login clave nueva HTTP 200",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-074",
@@ -978,10 +1098,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "AuthApiTest.cambiarLaContraseniaConClavesDistintasDevuelve400SinLlamarAUsersService",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: Las contraseñas no coinciden; la clave original sigue funcionando",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-075",
@@ -994,10 +1116,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "PasswordResetServiceTest.conUnTokenValidoCambiaLaClaveYElTokenQuedaInutilizado",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "segundo uso del link: HTTP 400 (El enlace no es válido o ya fue utilizado)",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-076",
@@ -1010,10 +1134,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "PasswordResetServiceTest.rechazaUnTokenDesconocido",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 400: El enlace no es válido o ya fue utilizado",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-077",
@@ -1026,10 +1152,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "AuthApiTest.cambiarLaContraseniaCierraLasSesionesAbiertasPeroPermiteVolverAIngresar",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "token anterior al cambio: HTTP 401; token nuevo: HTTP 200",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-080",
@@ -1042,10 +1170,12 @@
       "prioridad": "Alta",
       "suite": "Smoke + Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "AuthApiTest.serviciosRegistradosEnEureka",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "ACCOUNT-SERVICE: UP; API-GATEWAY: UP; AUTH-SERVICE: UP; USERS-SERVICE: UP",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-081",
@@ -1058,10 +1188,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 404 en ambos",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-082",
@@ -1074,10 +1206,12 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "UserApiTest.losEndpointsInternosExigenLaClaveInterna",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "sin clave: HTTP 401; clave incorrecta: HTTP 401",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-083",
@@ -1090,10 +1224,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
-      "obtenido": "Swagger UI HTTP 200; auth: 7 endpoints, users: 2 endpoints, accounts: 1 endpoints",
-      "fecha": "02/10/2026"
+      "obtenido": "Swagger UI HTTP 200; auth: 7 endpoints, users: 2 endpoints, accounts: 5 endpoints",
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-084",
@@ -1106,10 +1242,12 @@
       "prioridad": "Baja",
       "suite": "Regresión",
       "junit": "GatewayErrorHandlerTest.unaRutaInexistenteDevuelve404ConElFormatoComun",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "HTTP 404: El recurso solicitado no existe",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-085",
@@ -1122,10 +1260,12 @@
       "prioridad": "Media",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Script",
       "estado": "Pasó",
       "obtenido": "localhost:3000: HTTP 200; sitio-malicioso.com: HTTP 403",
-      "fecha": "02/10/2026"
+      "fecha": "15/10/2026"
     },
     {
       "id": "TC-086",
@@ -1138,6 +1278,8 @@
       "prioridad": "Alta",
       "suite": "Smoke + Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Manual",
       "estado": "Bloqueado",
       "obtenido": "No se pudo ejecutar: en esta máquina Docker Desktop no arranca porque Windows no tiene habilitada la característica \"Plataforma de máquina virtual\" (requiere administrador y reinicio). docker compose config valida el archivo.",
@@ -1154,10 +1296,498 @@
       "prioridad": "Alta",
       "suite": "Regresión",
       "junit": "",
+      "sprint": "1",
+      "restassured": "",
       "ejecucion": "Manual",
       "estado": "Bloqueado",
       "obtenido": "Depende de TC-086 (Docker). La suite se ejecutó con el perfil h2 (base en memoria).",
       "fecha": "02/10/2026"
+    },
+    {
+      "id": "TC-100",
+      "historia": "S2 Dashboard",
+      "titulo": "Ver el dinero disponible de la cuenta propia",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "GET /accounts/{accountId} con el token del dueño.",
+      "esperado": "HTTP 200 con id, cvu, alias y balance (0 en una cuenta nueva).",
+      "tipo": "Positivo",
+      "prioridad": "Alta",
+      "suite": "Smoke + Regresión",
+      "junit": "Sprint2ApiTest.elDuenioVeSuCuentaConSaldoCero",
+      "sprint": "2",
+      "restassured": "AccountApiTest.dineroDisponible",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200: cvu=5121505547552248565229, alias=condor.bosque.perla, balance=0.0",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-101",
+      "historia": "S2 Dashboard",
+      "titulo": "No se puede ver la cuenta de otro usuario",
+      "precondiciones": "Dos usuarios logueados.",
+      "pasos": "Con el token de A pedir GET /accounts/{accountId de B}.",
+      "esperado": "HTTP 403.",
+      "tipo": "Seguridad",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.otroUsuarioRecibe403AlConsultarUnaCuentaAjenaOInexistente",
+      "sprint": "2",
+      "restassured": "AccountApiTest.cuentaAjena",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 403: No tiene permisos para acceder a este recurso",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-102",
+      "historia": "S2 Dashboard",
+      "titulo": "Id de cuenta no numérico",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "GET /accounts/abc.",
+      "esperado": "HTTP 400.",
+      "tipo": "Negativo",
+      "prioridad": "Baja",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.idDeCuentaNoNumericoDevuelve400",
+      "sprint": "2",
+      "restassured": "AccountApiTest.idInvalido",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 400",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-103",
+      "historia": "S2 Dashboard",
+      "titulo": "Una cuenta nueva no tiene movimientos",
+      "precondiciones": "Usuario recién registrado y logueado.",
+      "pasos": "GET /accounts/{accountId}/transactions.",
+      "esperado": "HTTP 200 con una lista vacía.",
+      "tipo": "Borde",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.sinMovimientosLaListaDeUltimosMovimientosEstaVacia",
+      "sprint": "2",
+      "restassured": "AccountApiTest.sinMovimientos",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200: []",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-105",
+      "historia": "S2 Dashboard",
+      "titulo": "Consultar la cuenta sin token",
+      "precondiciones": "—",
+      "pasos": "GET /accounts/1 sin header Authorization.",
+      "esperado": "HTTP 401.",
+      "tipo": "Seguridad",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "",
+      "sprint": "2",
+      "restassured": "AccountApiTest.sinToken",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 401",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-110",
+      "historia": "S2 Mi perfil",
+      "titulo": "El perfil muestra los datos personales, el CVU y el alias",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "GET /users/{userId} y GET /accounts/{accountId}.",
+      "esperado": "Ambos HTTP 200: datos personales sin contraseña; CVU y alias de la cuenta.",
+      "tipo": "Positivo",
+      "prioridad": "Alta",
+      "suite": "Smoke + Regresión",
+      "junit": "UserApiTest.elUsuarioPuedeConsultarSusPropiosDatos",
+      "sprint": "2",
+      "restassured": "UserProfileApiTest.verPerfil",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "usuario Juan Pérez; cvu=3060993157590059194827, alias=sabana.hielo.mapa",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-111",
+      "historia": "S2 Mi perfil",
+      "titulo": "Editar nombre y teléfono",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "PATCH /users/{userId} con {\"firstName\": \"Juan Manuel\", \"phone\": \"+5491155556666\"}.",
+      "esperado": "HTTP 200 con los datos nuevos; el apellido y el email no cambian.",
+      "tipo": "Positivo",
+      "prioridad": "Alta",
+      "suite": "Smoke + Regresión",
+      "junit": "UserApiTest.elUsuarioPuedeEditarNombreApellidoYTelefono",
+      "sprint": "2",
+      "restassured": "UserProfileApiTest.editarPerfil",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200: Juan Manuel Pérez, +5491155556666",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-112",
+      "historia": "S2 Mi perfil",
+      "titulo": "Editar sin enviar ningún dato",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "PATCH /users/{userId} con {}.",
+      "esperado": "HTTP 400 indicando que hay que enviar al menos un dato.",
+      "tipo": "Negativo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "UserApiTest.editarSinDatosOConDatosInvalidosDevuelve400",
+      "sprint": "2",
+      "restassured": "UserProfileApiTest.editarSinDatos",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 400: Indique al menos un dato para modificar: firstName, lastName o phone",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-113",
+      "historia": "S2 Mi perfil",
+      "titulo": "Editar con datos inválidos",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "PATCH /users/{userId} con firstName de solo espacios y phone = \"123\".",
+      "esperado": "HTTP 400 con un detalle por cada campo inválido.",
+      "tipo": "Negativo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "UserApiTest.editarSinDatosOConDatosInvalidosDevuelve400",
+      "sprint": "2",
+      "restassured": "UserProfileApiTest.editarDatosInvalidos",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 400: firstName: El nombre debe tener al menos una letra y solo letras, espacios, apóstrofes y guiones; phone: El teléfono debe tener entre 8 y 15 dígitos",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-114",
+      "historia": "S2 Mi perfil",
+      "titulo": "El email y el DNI no se modifican",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "PATCH /users/{userId} con lastName, email y dni nuevos.",
+      "esperado": "HTTP 200: cambia el apellido; el email y el DNI quedan como estaban.",
+      "tipo": "Seguridad",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "UserApiTest.elEmailYElDniNoSeModificanAunqueVenganEnElJson",
+      "sprint": "2",
+      "restassured": "UserProfileApiTest.emailYDniNoEditables",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200: apellido=Gómez, email y DNI sin cambios",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-115",
+      "historia": "S2 Mi perfil",
+      "titulo": "No se pueden editar los datos de otro usuario",
+      "precondiciones": "Dos usuarios logueados.",
+      "pasos": "Con el token de A, PATCH /users/{userId de B}.",
+      "esperado": "HTTP 403.",
+      "tipo": "Seguridad",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "UserApiTest.unUsuarioNoPuedeEditarLosDatosDeOtro",
+      "sprint": "2",
+      "restassured": "UserProfileApiTest.editarOtroUsuario",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 403",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-116",
+      "historia": "S2 Mi perfil",
+      "titulo": "Modificar el alias de la cuenta",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "PATCH /accounts/{accountId} con {\"alias\": \"Nuevo.Alias.Qa\"} y luego GET /accounts/{accountId}.",
+      "esperado": "HTTP 200; el alias queda guardado en minúsculas.",
+      "tipo": "Positivo",
+      "prioridad": "Alta",
+      "suite": "Smoke + Regresión",
+      "junit": "Sprint2ApiTest.elDuenioPuedeCambiarSuAliasYSeGuardaEnMinusculas",
+      "sprint": "2",
+      "restassured": "AccountApiTest.modificarAlias",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200: alias=nuevo.alias.qa132",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-117",
+      "historia": "S2 Mi perfil",
+      "titulo": "Alias con formato inválido",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "PATCH /accounts/{accountId} con {\"alias\": \"solo.dos\"}.",
+      "esperado": "HTTP 400.",
+      "tipo": "Negativo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.unAliasConFormatoInvalidoDevuelve400",
+      "sprint": "2",
+      "restassured": "AccountApiTest.aliasInvalido",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 400: alias: El alias debe tener tres palabras separadas por punto (letras y números)",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-118",
+      "historia": "S2 Mi perfil",
+      "titulo": "Alias en uso por otra cuenta",
+      "precondiciones": "Dos usuarios logueados.",
+      "pasos": "Con el token de B, PATCH /accounts/{accountId de B} con el alias de A.",
+      "esperado": "HTTP 409.",
+      "tipo": "Negativo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.unAliasYaUsadoPorOtraCuentaDevuelve409",
+      "sprint": "2",
+      "restassured": "AccountApiTest.aliasEnUso",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 409: El alias camino.selva.globo ya está en uso",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-120",
+      "historia": "S2 Tarjetas",
+      "titulo": "Sin tarjetas la lista está vacía",
+      "precondiciones": "Usuario logueado sin tarjetas.",
+      "pasos": "GET /accounts/{accountId}/cards.",
+      "esperado": "HTTP 200 con una lista vacía.",
+      "tipo": "Borde",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.sinTarjetasLaListaEstaVacia",
+      "sprint": "2",
+      "restassured": "CardApiTest.listaVacia",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200: []",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-121",
+      "historia": "S2 Tarjetas",
+      "titulo": "Asociar una tarjeta a la cuenta",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "POST /accounts/{accountId}/cards con número válido, titular, vencimiento MM/AA, código y tipo.",
+      "esperado": "HTTP 201 con id, últimos 4 dígitos, marca, tipo y número enmascarado.",
+      "tipo": "Positivo",
+      "prioridad": "Alta",
+      "suite": "Smoke + Regresión",
+      "junit": "Sprint2ApiTest.asociarUnaTarjetaDevuelve201SinElNumeroCompletoNiElCodigo",
+      "sprint": "2",
+      "restassured": "CardApiTest.asociarTarjeta",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 201: VISA **** **** **** 7215, tipo DEBIT",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-122",
+      "historia": "S2 Tarjetas",
+      "titulo": "Listar las tarjetas de la cuenta",
+      "precondiciones": "Usuario con 2 tarjetas asociadas.",
+      "pasos": "GET /accounts/{accountId}/cards.",
+      "esperado": "HTTP 200 con las 2 tarjetas.",
+      "tipo": "Positivo",
+      "prioridad": "Alta",
+      "suite": "Smoke + Regresión",
+      "junit": "",
+      "sprint": "2",
+      "restassured": "CardApiTest.listarTarjetas",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200 con 2 tarjetas",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-123",
+      "historia": "S2 Tarjetas",
+      "titulo": "Detalle de una tarjeta",
+      "precondiciones": "Usuario con una tarjeta asociada.",
+      "pasos": "GET /accounts/{accountId}/cards/{cardId}.",
+      "esperado": "HTTP 200 con los datos de la tarjeta.",
+      "tipo": "Positivo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.detalleYEliminacionDeUnaTarjeta",
+      "sprint": "2",
+      "restassured": "CardApiTest.detalleTarjeta",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200: tarjeta 13 terminada en 3198",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-124",
+      "historia": "S2 Tarjetas",
+      "titulo": "Una tarjeta asociada a otra cuenta no se puede volver a asociar",
+      "precondiciones": "Tarjeta asociada a la cuenta de A.",
+      "pasos": "Con el token de B, POST /accounts/{accountId de B}/cards con el mismo número.",
+      "esperado": "HTTP 409 \"La tarjeta ya está asociada a otra cuenta\".",
+      "tipo": "Negativo",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.unaTarjetaYaAsociadaAOtraCuentaDevuelve409",
+      "sprint": "2",
+      "restassured": "CardApiTest.tarjetaDeOtraCuenta",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 409: La tarjeta ya está asociada a otra cuenta",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-125",
+      "historia": "S2 Tarjetas",
+      "titulo": "La misma tarjeta no se asocia dos veces a la misma cuenta",
+      "precondiciones": "Tarjeta ya asociada.",
+      "pasos": "Repetir POST /accounts/{accountId}/cards con el mismo número.",
+      "esperado": "HTTP 409.",
+      "tipo": "Negativo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "",
+      "sprint": "2",
+      "restassured": "CardApiTest.tarjetaRepetida",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 409: La tarjeta ya está asociada a esta cuenta",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-126",
+      "historia": "S2 Tarjetas",
+      "titulo": "Número de tarjeta inválido (dígito verificador)",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "POST /accounts/{accountId}/cards con el número 4509953566233705.",
+      "esperado": "HTTP 400 \"El número de tarjeta no es válido\".",
+      "tipo": "Negativo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.unNumeroQueNoPasaLuhnDevuelve400",
+      "sprint": "2",
+      "restassured": "CardApiTest.numeroInvalido",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 400: El número de tarjeta no es válido",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-127",
+      "historia": "S2 Tarjetas",
+      "titulo": "Tarjeta vencida",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "POST /accounts/{accountId}/cards con vencimiento 01/20.",
+      "esperado": "HTTP 400 \"La tarjeta está vencida\".",
+      "tipo": "Negativo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.unaTarjetaVencidaDevuelve400",
+      "sprint": "2",
+      "restassured": "CardApiTest.tarjetaVencida",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 400: La tarjeta está vencida",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-128",
+      "historia": "S2 Tarjetas",
+      "titulo": "Datos de tarjeta faltantes",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "POST /accounts/{accountId}/cards con {}.",
+      "esperado": "HTTP 400 con un detalle por cada uno de los 5 campos.",
+      "tipo": "Negativo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.datosDeTarjetaFaltantesDevuelven400ConElDetalle",
+      "sprint": "2",
+      "restassured": "CardApiTest.datosFaltantes",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 400 con 5 detalles",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-129",
+      "historia": "S2 Tarjetas",
+      "titulo": "Eliminar una tarjeta",
+      "precondiciones": "Usuario con una tarjeta asociada.",
+      "pasos": "DELETE /accounts/{accountId}/cards/{cardId} y luego listar las tarjetas.",
+      "esperado": "HTTP 200; la tarjeta ya no aparece en la lista.",
+      "tipo": "Positivo",
+      "prioridad": "Alta",
+      "suite": "Smoke + Regresión",
+      "junit": "Sprint2ApiTest.detalleYEliminacionDeUnaTarjeta",
+      "sprint": "2",
+      "restassured": "CardApiTest.eliminarTarjeta",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 200; la lista quedó vacía",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-130",
+      "historia": "S2 Tarjetas",
+      "titulo": "Eliminar una tarjeta inexistente",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "DELETE /accounts/{accountId}/cards/999999.",
+      "esperado": "HTTP 404.",
+      "tipo": "Negativo",
+      "prioridad": "Media",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.detalleYEliminacionDeUnaTarjeta",
+      "sprint": "2",
+      "restassured": "CardApiTest.eliminarInexistente",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "HTTP 404: No existe la tarjeta 999999 asociada a la cuenta 147",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-131",
+      "historia": "S2 Tarjetas",
+      "titulo": "Las tarjetas de otra cuenta no son accesibles",
+      "precondiciones": "A tiene una tarjeta; B logueado.",
+      "pasos": "Con el token de B: listar las tarjetas de A, y ver y eliminar la tarjeta de A usando la cuenta de B.",
+      "esperado": "Listado ajeno: HTTP 403. Ver y eliminar desde otra cuenta: HTTP 404. La tarjeta de A sigue existiendo.",
+      "tipo": "Seguridad",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "Sprint2ApiTest.unaTarjetaDeOtraCuentaNoSePuedeVerNiEliminarDesdeLaPropia",
+      "sprint": "2",
+      "restassured": "CardApiTest.tarjetasAjenas",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "listado ajeno 403; ver y borrar desde otra cuenta 404; la tarjeta de A sigue",
+      "fecha": "15/10/2026"
+    },
+    {
+      "id": "TC-132",
+      "historia": "S2 Tarjetas",
+      "titulo": "La API no expone el número completo ni el código de seguridad",
+      "precondiciones": "Usuario logueado.",
+      "pasos": "Asociar una tarjeta y revisar la respuesta y el listado.",
+      "esperado": "Ninguna respuesta contiene el número completo ni un campo cvv.",
+      "tipo": "Seguridad",
+      "prioridad": "Alta",
+      "suite": "Regresión",
+      "junit": "",
+      "sprint": "2",
+      "restassured": "CardApiTest.noExponeDatosSensibles",
+      "ejecucion": "Script",
+      "estado": "Pasó",
+      "obtenido": "solo se expone **** **** **** 8400",
+      "fecha": "15/10/2026"
     }
   ]
 }

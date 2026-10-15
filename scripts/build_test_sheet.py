@@ -18,15 +18,16 @@ DEFAULT, HEADER, TEXT, PASSED, FAILED, BLOCKED, BOLD, TITLE, CENTER = range(9)
 STATUS_STYLE = {"Pasó": PASSED, "Falló": FAILED, "Bloqueado": BLOCKED}
 
 COLUMNS = [  # (titulo, clave en el JSON, ancho, estilo)
-    ("ID", "id", 9, CENTER), ("Historia / épica", "historia", 22, TEXT), ("Título", "titulo", 38, TEXT),
+    ("ID", "id", 9, CENTER), ("Sprint", "sprint", 8, CENTER), ("Historia / épica", "historia", 22, TEXT),
+    ("Título", "titulo", 38, TEXT),
     ("Precondiciones", "precondiciones", 30, TEXT), ("Pasos", "pasos", 52, TEXT),
     ("Resultado esperado", "esperado", 46, TEXT), ("Tipo", "tipo", 11, CENTER), ("Prioridad", "prioridad", 10, CENTER),
-    ("Suite", "suite", 18, CENTER), ("Test automatizado (JUnit)", "junit", 44, TEXT),
+    ("Suite", "suite", 18, CENTER), ("Test de integración (JUnit)", "junit", 44, TEXT),
+    ("Automatizado (RestAssured)", "restassured", 34, TEXT),
     ("Ejecución", "ejecucion", 11, CENTER), ("Estado", "estado", 12, None), ("Resultado obtenido", "obtenido", 52, TEXT),
     ("Fecha", "fecha", 12, CENTER),
 ]
-STATUS_COLUMN = "L"
-SUITE_COLUMN = "I"
+STATUS_COLUMN = "N"
 
 STYLES = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -131,17 +132,25 @@ def summary_sheet(data, all_cases_sheet, smoke_sheet):
         [("Última ejecución", BOLD), (data["ejecutado"].replace("T", " "), DEFAULT)],
         [("Entorno", BOLD), (data["entorno"] + "  (perfil h2: base en memoria; ver TC-086 y TC-087)", DEFAULT)],
         [("Cómo se ejecutó", BOLD), ("python scripts/run_test_suite.py (los casos \"Manual\" se ejecutaron a mano)", DEFAULT)],
+        [("Automatización", BOLD), ("mvnw -pl api-tests test -DskipApiTests=false (RestAssured, ver api-tests/README.md)", DEFAULT)],
         [],
     ]
     rows += block("Suite de regresión (todos los casos)", all_cases_sheet)
     rows += block("Suite de humo (smoke)", smoke_sheet)
+    rows += [[("Por sprint", BOLD)], [("Sprint", HEADER), ("Casos", HEADER), ("Pasaron", HEADER), ("Automatizados", HEADER)]]
+    for sprint in sorted({case["sprint"] for case in data["casos"]}):
+        cases = [case for case in data["casos"] if case["sprint"] == sprint]
+        rows.append([(f"Sprint {sprint}", CENTER), (len(cases), CENTER),
+                     (sum(1 for case in cases if case["estado"] == "Pasó"), CENTER),
+                     (sum(1 for case in cases if case.get("restassured")), CENTER)])
+    rows.append([])
     rows += [
         [("Criterios", BOLD)],
         [("Smoke", BOLD), ("Camino feliz de cada historia y verificaciones mínimas de seguridad e infraestructura. "
                            "Si falla, el build no es apto para seguir probando.", DEFAULT)],
         [("Regresión", BOLD), ("Todos los casos, incluidos los de smoke. Se ejecuta antes de cada entrega.", DEFAULT)],
     ]
-    return sheet_xml(rows, widths=[38, 16])
+    return sheet_xml(rows, widths=[38, 16, 12, 16])
 
 
 def main():

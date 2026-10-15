@@ -187,11 +187,42 @@ def case(case_id, story, title, pre, steps, expected, kind, priority, suite, jun
         CASES.append({
             "id": case_id, "historia": story, "titulo": title, "precondiciones": pre, "pasos": steps,
             "esperado": expected, "tipo": kind, "prioridad": priority, "suite": suite, "junit": junit,
+            "sprint": STORY_SPRINT.get(story, ""), "restassured": RESTASSURED.get(case_id, ""),
             "ejecucion": "Manual" if manual else "Script", "manual": manual, "run": function,
         })
         return function
     return decorator
 
+
+# Casos automatizados con RestAssured (modulo api-tests): id del caso -> Clase.metodo
+RESTASSURED = {
+    "TC-001": "AuthApiTest.registroExitoso", "TC-006": "AuthApiTest.emailDuplicado",
+    "TC-030": "AuthApiTest.loginExitoso", "TC-032": "AuthApiTest.loginUsuarioInexistente",
+    "TC-033": "AuthApiTest.loginClaveIncorrecta", "TC-037": "AuthApiTest.accesoConToken",
+    "TC-039": "AuthApiTest.accesoSinToken", "TC-050": "AuthApiTest.logout",
+    "TC-051": "AuthApiTest.tokenInvalidadoTrasLogout", "TC-061": "AuthApiTest.loginSinVerificar",
+    "TC-062": "AuthApiTest.verificacionDeEmail", "TC-080": "AuthApiTest.serviciosRegistradosEnEureka",
+    "TC-100": "AccountApiTest.dineroDisponible", "TC-101": "AccountApiTest.cuentaAjena",
+    "TC-102": "AccountApiTest.idInvalido", "TC-103": "AccountApiTest.sinMovimientos",
+    "TC-105": "AccountApiTest.sinToken", "TC-116": "AccountApiTest.modificarAlias",
+    "TC-117": "AccountApiTest.aliasInvalido", "TC-118": "AccountApiTest.aliasEnUso",
+    "TC-110": "UserProfileApiTest.verPerfil", "TC-111": "UserProfileApiTest.editarPerfil",
+    "TC-112": "UserProfileApiTest.editarSinDatos", "TC-113": "UserProfileApiTest.editarDatosInvalidos",
+    "TC-114": "UserProfileApiTest.emailYDniNoEditables", "TC-115": "UserProfileApiTest.editarOtroUsuario",
+    "TC-120": "CardApiTest.listaVacia", "TC-121": "CardApiTest.asociarTarjeta",
+    "TC-122": "CardApiTest.listarTarjetas", "TC-123": "CardApiTest.detalleTarjeta",
+    "TC-124": "CardApiTest.tarjetaDeOtraCuenta", "TC-125": "CardApiTest.tarjetaRepetida",
+    "TC-126": "CardApiTest.numeroInvalido", "TC-127": "CardApiTest.tarjetaVencida",
+    "TC-128": "CardApiTest.datosFaltantes", "TC-129": "CardApiTest.eliminarTarjeta",
+    "TC-130": "CardApiTest.eliminarInexistente", "TC-131": "CardApiTest.tarjetasAjenas",
+    "TC-132": "CardApiTest.noExponeDatosSensibles",
+}
+
+STORY_SPRINT = {
+    "HU1 Registro": "1", "HU2 Login": "1", "HU3 Logout": "1", "Opcional: verificación de email": "1",
+    "Opcional: recupero de contraseña": "1", "Infraestructura": "1",
+    "S2 Dashboard": "2", "S2 Mi perfil": "2", "S2 Tarjetas": "2",
+}
 
 HU1 = "HU1 Registro"
 HU2 = "HU2 Login"
@@ -206,11 +237,11 @@ REG_STEPS = "POST /users/register con el JSON indicado."
 
 @case("TC-001", HU1, "Registro exitoso con datos válidos", "Email y DNI no registrados.",
       "POST /users/register con nombre, apellido, DNI, email, teléfono y contraseña válidos.",
-      "HTTP 201. JSON con id, firstName, lastName, dni, email, phone, cvu y alias.", "Positivo", "Alta", SMOKE,
+      "HTTP 201. JSON con id, firstName, lastName, dni, email, phone, accountId, cvu y alias.", "Positivo", "Alta", SMOKE,
       "UserApiTest.registroCorrectoDevuelve201ConCvuYAliasYSinLaClave")
 def tc001():
     data, created = register()
-    for field in ("id", "firstName", "lastName", "dni", "email", "phone", "cvu", "alias"):
+    for field in ("id", "firstName", "lastName", "dni", "email", "phone", "accountId", "cvu", "alias"):
         check(created.get(field) not in (None, ""), f"falta el campo {field} en la respuesta: {created}")
     check(created["email"] == data["email"] and created["dni"] == data["dni"], f"los datos devueltos no coinciden: {created}")
     return f"HTTP 201, id={created['id']}, cvu={created['cvu']}, alias={created['alias']}"
@@ -882,6 +913,330 @@ def tc086():
       manual=("Bloqueado", "Depende de TC-086 (Docker). La suite se ejecutó con el perfil h2 (base en memoria).", "02/10/2026"))
 def tc087():
     pass
+
+
+# ---- Sprint 2: dashboard, perfil y tarjetas
+
+S2_DASH = "S2 Dashboard"
+S2_PROFILE = "S2 Mi perfil"
+S2_CARDS = "S2 Tarjetas"
+
+
+def card_json(number=None, **overrides):
+    data = {"number": number or new_card_number(), "holderName": "Juan Perez", "expiration": "12/39",
+            "cvv": "123", "type": "DEBIT"}
+    data.update(overrides)
+    return data
+
+
+def new_card_number():
+    """Numero Visa valido (pasa Luhn) y distinto en cada llamada."""
+    _counter[0] += 1
+    base = "4" + f"{(time.time_ns() // 1000 + _counter[0]) % 10**14:014d}"
+    total = 0
+    for i, ch in enumerate(reversed(base)):
+        digit = int(ch)
+        if i % 2 == 0:
+            digit *= 2
+            if digit > 9:
+                digit -= 9
+        total += digit
+    return base + str((10 - total % 10) % 10)
+
+
+def add_card(account_id, token, number=None):
+    return expect_status(api("POST", f"/accounts/{account_id}/cards", card_json(number), token=token), 201).json
+
+
+@case("TC-100", S2_DASH, "Ver el dinero disponible de la cuenta propia", "Usuario logueado.",
+      "GET /accounts/{accountId} con el token del dueño.",
+      "HTTP 200 con id, cvu, alias y balance (0 en una cuenta nueva).", "Positivo", "Alta", SMOKE,
+      "Sprint2ApiTest.elDuenioVeSuCuentaConSaldoCero")
+def tc100():
+    _, created, token = logged_user()
+    account = expect_status(api("GET", f"/accounts/{created['accountId']}", token=token), 200).json
+    check(account["cvu"] == created["cvu"] and float(account["balance"]) == 0, f"cuenta: {account}")
+    return f"HTTP 200: cvu={account['cvu']}, alias={account['alias']}, balance={account['balance']}"
+
+
+@case("TC-101", S2_DASH, "No se puede ver la cuenta de otro usuario", "Dos usuarios logueados.",
+      "Con el token de A pedir GET /accounts/{accountId de B}.", "HTTP 403.", "Seguridad", "Alta", REGRESSION,
+      "Sprint2ApiTest.otroUsuarioRecibe403AlConsultarUnaCuentaAjenaOInexistente")
+def tc101():
+    _, _, token_a = logged_user()
+    _, user_b, _ = logged_user()
+    response = expect_status(api("GET", f"/accounts/{user_b['accountId']}", token=token_a), 403)
+    return f"HTTP 403: {response.message}"
+
+
+@case("TC-102", S2_DASH, "Id de cuenta no numérico", "Usuario logueado.", "GET /accounts/abc.", "HTTP 400.",
+      "Negativo", "Baja", REGRESSION, "Sprint2ApiTest.idDeCuentaNoNumericoDevuelve400")
+def tc102():
+    _, _, token = logged_user()
+    expect_status(api("GET", "/accounts/abc", token=token), 400)
+    return "HTTP 400"
+
+
+@case("TC-103", S2_DASH, "Una cuenta nueva no tiene movimientos", "Usuario recién registrado y logueado.",
+      "GET /accounts/{accountId}/transactions.", "HTTP 200 con una lista vacía.", "Borde", "Media", REGRESSION,
+      "Sprint2ApiTest.sinMovimientosLaListaDeUltimosMovimientosEstaVacia")
+def tc103():
+    _, created, token = logged_user()
+    response = expect_status(api("GET", f"/accounts/{created['accountId']}/transactions", token=token), 200)
+    check(response.json == [], f"se esperaba una lista vacía: {response.json}")
+    return "HTTP 200: []"
+
+
+@case("TC-105", S2_DASH, "Consultar la cuenta sin token", "—", "GET /accounts/1 sin header Authorization.",
+      "HTTP 401.", "Seguridad", "Alta", REGRESSION)
+def tc105():
+    expect_status(api("GET", "/accounts/1"), 401)
+    return "HTTP 401"
+
+
+@case("TC-110", S2_PROFILE, "El perfil muestra los datos personales, el CVU y el alias", "Usuario logueado.",
+      "GET /users/{userId} y GET /accounts/{accountId}.",
+      "Ambos HTTP 200: datos personales sin contraseña; CVU y alias de la cuenta.", "Positivo", "Alta", SMOKE,
+      "UserApiTest.elUsuarioPuedeConsultarSusPropiosDatos")
+def tc110():
+    data, created, token = logged_user()
+    user = expect_status(api("GET", f"/users/{created['id']}", token=token), 200).json
+    account = expect_status(api("GET", f"/accounts/{created['accountId']}", token=token), 200).json
+    check(user["email"] == data["email"] and "password" not in user, f"usuario: {user}")
+    return f"usuario {user['firstName']} {user['lastName']}; cvu={account['cvu']}, alias={account['alias']}"
+
+
+@case("TC-111", S2_PROFILE, "Editar nombre y teléfono", "Usuario logueado.",
+      "PATCH /users/{userId} con {\"firstName\": \"Juan Manuel\", \"phone\": \"+5491155556666\"}.",
+      "HTTP 200 con los datos nuevos; el apellido y el email no cambian.", "Positivo", "Alta", SMOKE,
+      "UserApiTest.elUsuarioPuedeEditarNombreApellidoYTelefono")
+def tc111():
+    data, created, token = logged_user()
+    body = {"firstName": "Juan Manuel", "phone": "+5491155556666"}
+    user = expect_status(api("PATCH", f"/users/{created['id']}", body, token=token), 200).json
+    check(user["firstName"] == "Juan Manuel" and user["phone"] == "+5491155556666" and user["lastName"] == "Pérez",
+          f"respuesta: {user}")
+    return f"HTTP 200: {user['firstName']} {user['lastName']}, {user['phone']}"
+
+
+@case("TC-112", S2_PROFILE, "Editar sin enviar ningún dato", "Usuario logueado.", "PATCH /users/{userId} con {}.",
+      "HTTP 400 indicando que hay que enviar al menos un dato.", "Negativo", "Media", REGRESSION,
+      "UserApiTest.editarSinDatosOConDatosInvalidosDevuelve400")
+def tc112():
+    _, created, token = logged_user()
+    response = expect_status(api("PATCH", f"/users/{created['id']}", {}, token=token), 400)
+    return f"HTTP 400: {response.message}"
+
+
+@case("TC-113", S2_PROFILE, "Editar con datos inválidos", "Usuario logueado.",
+      "PATCH /users/{userId} con firstName de solo espacios y phone = \"123\".",
+      "HTTP 400 con un detalle por cada campo inválido.", "Negativo", "Media", REGRESSION,
+      "UserApiTest.editarSinDatosOConDatosInvalidosDevuelve400")
+def tc113():
+    _, created, token = logged_user()
+    response = expect_status(api("PATCH", f"/users/{created['id']}", {"firstName": "   ", "phone": "123"}, token=token), 400)
+    check(len(response.json["details"]) == 2, f"detalles: {response.json['details']}")
+    return "HTTP 400: " + "; ".join(response.json["details"])
+
+
+@case("TC-114", S2_PROFILE, "El email y el DNI no se modifican", "Usuario logueado.",
+      "PATCH /users/{userId} con lastName, email y dni nuevos.",
+      "HTTP 200: cambia el apellido; el email y el DNI quedan como estaban.", "Seguridad", "Alta", REGRESSION,
+      "UserApiTest.elEmailYElDniNoSeModificanAunqueVenganEnElJson")
+def tc114():
+    data, created, token = logged_user()
+    user = expect_status(api("PATCH", f"/users/{created['id']}",
+                             {"lastName": "Gómez", "email": "otro@mail.com", "dni": "99999999"}, token=token), 200).json
+    check(user["email"] == data["email"] and user["dni"] == data["dni"] and user["lastName"] == "Gómez", f"respuesta: {user}")
+    return f"HTTP 200: apellido={user['lastName']}, email y DNI sin cambios"
+
+
+@case("TC-115", S2_PROFILE, "No se pueden editar los datos de otro usuario", "Dos usuarios logueados.",
+      "Con el token de A, PATCH /users/{userId de B}.", "HTTP 403.", "Seguridad", "Alta", REGRESSION,
+      "UserApiTest.unUsuarioNoPuedeEditarLosDatosDeOtro")
+def tc115():
+    _, _, token_a = logged_user()
+    _, user_b, _ = logged_user()
+    expect_status(api("PATCH", f"/users/{user_b['id']}", {"firstName": "Intruso"}, token=token_a), 403)
+    return "HTTP 403"
+
+
+@case("TC-116", S2_PROFILE, "Modificar el alias de la cuenta", "Usuario logueado.",
+      "PATCH /accounts/{accountId} con {\"alias\": \"Nuevo.Alias.Qa\"} y luego GET /accounts/{accountId}.",
+      "HTTP 200; el alias queda guardado en minúsculas.", "Positivo", "Alta", SMOKE,
+      "Sprint2ApiTest.elDuenioPuedeCambiarSuAliasYSeGuardaEnMinusculas")
+def tc116():
+    _, created, token = logged_user()
+    alias = f"Nuevo.Alias.Qa{created['accountId']}"
+    expect_status(api("PATCH", f"/accounts/{created['accountId']}", {"alias": alias}, token=token), 200)
+    account = expect_status(api("GET", f"/accounts/{created['accountId']}", token=token), 200).json
+    check(account["alias"] == alias.lower(), f"alias guardado: {account['alias']}")
+    return f"HTTP 200: alias={account['alias']}"
+
+
+@case("TC-117", S2_PROFILE, "Alias con formato inválido", "Usuario logueado.",
+      "PATCH /accounts/{accountId} con {\"alias\": \"solo.dos\"}.", "HTTP 400.", "Negativo", "Media", REGRESSION,
+      "Sprint2ApiTest.unAliasConFormatoInvalidoDevuelve400")
+def tc117():
+    _, created, token = logged_user()
+    response = expect_status(api("PATCH", f"/accounts/{created['accountId']}", {"alias": "solo.dos"}, token=token), 400)
+    return "HTTP 400: " + "; ".join(response.json["details"])
+
+
+@case("TC-118", S2_PROFILE, "Alias en uso por otra cuenta", "Dos usuarios logueados.",
+      "Con el token de B, PATCH /accounts/{accountId de B} con el alias de A.", "HTTP 409.", "Negativo", "Media",
+      REGRESSION, "Sprint2ApiTest.unAliasYaUsadoPorOtraCuentaDevuelve409")
+def tc118():
+    _, user_a, _ = logged_user()
+    _, user_b, token_b = logged_user()
+    response = expect_status(api("PATCH", f"/accounts/{user_b['accountId']}", {"alias": user_a["alias"]}, token=token_b), 409)
+    return f"HTTP 409: {response.message}"
+
+
+@case("TC-120", S2_CARDS, "Sin tarjetas la lista está vacía", "Usuario logueado sin tarjetas.",
+      "GET /accounts/{accountId}/cards.", "HTTP 200 con una lista vacía.", "Borde", "Media", REGRESSION,
+      "Sprint2ApiTest.sinTarjetasLaListaEstaVacia")
+def tc120():
+    _, created, token = logged_user()
+    response = expect_status(api("GET", f"/accounts/{created['accountId']}/cards", token=token), 200)
+    check(response.json == [], f"lista: {response.json}")
+    return "HTTP 200: []"
+
+
+@case("TC-121", S2_CARDS, "Asociar una tarjeta a la cuenta", "Usuario logueado.",
+      "POST /accounts/{accountId}/cards con número válido, titular, vencimiento MM/AA, código y tipo.",
+      "HTTP 201 con id, últimos 4 dígitos, marca, tipo y número enmascarado.", "Positivo", "Alta", SMOKE,
+      "Sprint2ApiTest.asociarUnaTarjetaDevuelve201SinElNumeroCompletoNiElCodigo")
+def tc121():
+    _, created, token = logged_user()
+    number = new_card_number()
+    card = add_card(created["accountId"], token, number)
+    check(card["lastFour"] == number[-4:] and card["brand"] == "VISA" and card["number"].endswith(number[-4:]),
+          f"tarjeta: {card}")
+    return f"HTTP 201: {card['brand']} {card['number']}, tipo {card['type']}"
+
+
+@case("TC-122", S2_CARDS, "Listar las tarjetas de la cuenta", "Usuario con 2 tarjetas asociadas.",
+      "GET /accounts/{accountId}/cards.", "HTTP 200 con las 2 tarjetas.", "Positivo", "Alta", SMOKE)
+def tc122():
+    _, created, token = logged_user()
+    add_card(created["accountId"], token)
+    add_card(created["accountId"], token)
+    cards = expect_status(api("GET", f"/accounts/{created['accountId']}/cards", token=token), 200).json
+    check(len(cards) == 2, f"tarjetas: {cards}")
+    return "HTTP 200 con 2 tarjetas"
+
+
+@case("TC-123", S2_CARDS, "Detalle de una tarjeta", "Usuario con una tarjeta asociada.",
+      "GET /accounts/{accountId}/cards/{cardId}.", "HTTP 200 con los datos de la tarjeta.", "Positivo", "Media",
+      REGRESSION, "Sprint2ApiTest.detalleYEliminacionDeUnaTarjeta")
+def tc123():
+    _, created, token = logged_user()
+    card = add_card(created["accountId"], token)
+    detail = expect_status(api("GET", f"/accounts/{created['accountId']}/cards/{card['id']}", token=token), 200).json
+    check(detail["id"] == card["id"], f"detalle: {detail}")
+    return f"HTTP 200: tarjeta {detail['id']} terminada en {detail['lastFour']}"
+
+
+@case("TC-124", S2_CARDS, "Una tarjeta asociada a otra cuenta no se puede volver a asociar",
+      "Tarjeta asociada a la cuenta de A.", "Con el token de B, POST /accounts/{accountId de B}/cards con el mismo número.",
+      "HTTP 409 \"La tarjeta ya está asociada a otra cuenta\".", "Negativo", "Alta", REGRESSION,
+      "Sprint2ApiTest.unaTarjetaYaAsociadaAOtraCuentaDevuelve409")
+def tc124():
+    _, user_a, token_a = logged_user()
+    _, user_b, token_b = logged_user()
+    number = new_card_number()
+    add_card(user_a["accountId"], token_a, number)
+    response = expect_status(api("POST", f"/accounts/{user_b['accountId']}/cards", card_json(number), token=token_b), 409)
+    return f"HTTP 409: {response.message}"
+
+
+@case("TC-125", S2_CARDS, "La misma tarjeta no se asocia dos veces a la misma cuenta", "Tarjeta ya asociada.",
+      "Repetir POST /accounts/{accountId}/cards con el mismo número.", "HTTP 409.", "Negativo", "Media", REGRESSION)
+def tc125():
+    _, created, token = logged_user()
+    number = new_card_number()
+    add_card(created["accountId"], token, number)
+    response = expect_status(api("POST", f"/accounts/{created['accountId']}/cards", card_json(number), token=token), 409)
+    return f"HTTP 409: {response.message}"
+
+
+@case("TC-126", S2_CARDS, "Número de tarjeta inválido (dígito verificador)", "Usuario logueado.",
+      "POST /accounts/{accountId}/cards con el número 4509953566233705.", "HTTP 400 \"El número de tarjeta no es válido\".",
+      "Negativo", "Media", REGRESSION, "Sprint2ApiTest.unNumeroQueNoPasaLuhnDevuelve400")
+def tc126():
+    _, created, token = logged_user()
+    response = expect_status(api("POST", f"/accounts/{created['accountId']}/cards", card_json("4509953566233705"), token=token), 400)
+    return f"HTTP 400: {response.message}"
+
+
+@case("TC-127", S2_CARDS, "Tarjeta vencida", "Usuario logueado.",
+      "POST /accounts/{accountId}/cards con vencimiento 01/20.", "HTTP 400 \"La tarjeta está vencida\".",
+      "Negativo", "Media", REGRESSION, "Sprint2ApiTest.unaTarjetaVencidaDevuelve400")
+def tc127():
+    _, created, token = logged_user()
+    response = expect_status(api("POST", f"/accounts/{created['accountId']}/cards", card_json(expiration="01/20"), token=token), 400)
+    return f"HTTP 400: {response.message}"
+
+
+@case("TC-128", S2_CARDS, "Datos de tarjeta faltantes", "Usuario logueado.", "POST /accounts/{accountId}/cards con {}.",
+      "HTTP 400 con un detalle por cada uno de los 5 campos.", "Negativo", "Media", REGRESSION,
+      "Sprint2ApiTest.datosDeTarjetaFaltantesDevuelven400ConElDetalle")
+def tc128():
+    _, created, token = logged_user()
+    response = expect_status(api("POST", f"/accounts/{created['accountId']}/cards", {}, token=token), 400)
+    check(len(response.json["details"]) == 5, f"detalles: {response.json['details']}")
+    return "HTTP 400 con 5 detalles"
+
+
+@case("TC-129", S2_CARDS, "Eliminar una tarjeta", "Usuario con una tarjeta asociada.",
+      "DELETE /accounts/{accountId}/cards/{cardId} y luego listar las tarjetas.",
+      "HTTP 200; la tarjeta ya no aparece en la lista.", "Positivo", "Alta", SMOKE,
+      "Sprint2ApiTest.detalleYEliminacionDeUnaTarjeta")
+def tc129():
+    _, created, token = logged_user()
+    card = add_card(created["accountId"], token)
+    expect_status(api("DELETE", f"/accounts/{created['accountId']}/cards/{card['id']}", token=token), 200)
+    cards = expect_status(api("GET", f"/accounts/{created['accountId']}/cards", token=token), 200).json
+    check(cards == [], f"lista: {cards}")
+    return "HTTP 200; la lista quedó vacía"
+
+
+@case("TC-130", S2_CARDS, "Eliminar una tarjeta inexistente", "Usuario logueado.",
+      "DELETE /accounts/{accountId}/cards/999999.", "HTTP 404.", "Negativo", "Media", REGRESSION,
+      "Sprint2ApiTest.detalleYEliminacionDeUnaTarjeta")
+def tc130():
+    _, created, token = logged_user()
+    response = expect_status(api("DELETE", f"/accounts/{created['accountId']}/cards/999999", token=token), 404)
+    return f"HTTP 404: {response.message}"
+
+
+@case("TC-131", S2_CARDS, "Las tarjetas de otra cuenta no son accesibles", "A tiene una tarjeta; B logueado.",
+      "Con el token de B: listar las tarjetas de A, y ver y eliminar la tarjeta de A usando la cuenta de B.",
+      "Listado ajeno: HTTP 403. Ver y eliminar desde otra cuenta: HTTP 404. La tarjeta de A sigue existiendo.",
+      "Seguridad", "Alta", REGRESSION, "Sprint2ApiTest.unaTarjetaDeOtraCuentaNoSePuedeVerNiEliminarDesdeLaPropia")
+def tc131():
+    _, user_a, token_a = logged_user()
+    _, user_b, token_b = logged_user()
+    card = add_card(user_a["accountId"], token_a)
+    expect_status(api("GET", f"/accounts/{user_a['accountId']}/cards", token=token_b), 403)
+    expect_status(api("GET", f"/accounts/{user_b['accountId']}/cards/{card['id']}", token=token_b), 404)
+    expect_status(api("DELETE", f"/accounts/{user_b['accountId']}/cards/{card['id']}", token=token_b), 404)
+    expect_status(api("GET", f"/accounts/{user_a['accountId']}/cards/{card['id']}", token=token_a), 200)
+    return "listado ajeno 403; ver y borrar desde otra cuenta 404; la tarjeta de A sigue"
+
+
+@case("TC-132", S2_CARDS, "La API no expone el número completo ni el código de seguridad", "Usuario logueado.",
+      "Asociar una tarjeta y revisar la respuesta y el listado.",
+      "Ninguna respuesta contiene el número completo ni un campo cvv.", "Seguridad", "Alta", REGRESSION)
+def tc132():
+    _, created, token = logged_user()
+    number = new_card_number()
+    response = expect_status(api("POST", f"/accounts/{created['accountId']}/cards", card_json(number), token=token), 201)
+    listing = expect_status(api("GET", f"/accounts/{created['accountId']}/cards", token=token), 200)
+    check(number not in response.text and number not in listing.text, "se expone el número completo")
+    check('"cvv"' not in response.text and '"cvv"' not in listing.text, "se expone el código de seguridad")
+    return f"solo se expone {response.json['number']}"
 
 
 # ---------------------------------------------------------------- ejecucion

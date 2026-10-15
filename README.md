@@ -13,6 +13,7 @@ Java 21 · Spring Boot 3.5 · Spring Cloud 2025.0 (Eureka, Gateway, OpenFeign) �
 
 ```
 eureka-server/     Service discovery (:8761)
+api-tests/         Tests automatizados de la API con RestAssured (corren contra el sistema levantado)
 api-gateway/       Punto de entrada: rutas y validación de token (:8090)
 auth-service/      Login, logout, JWT (:8081)
 users-service/     Usuarios, roles, verificación de email, recupero de contraseña (:8082)
@@ -69,7 +70,15 @@ Swagger UI unificado: `http://localhost:8090/swagger-ui.html` (arriba a la derec
 | `GET /auth/reset-password.html` | — | Pantalla para ingresar y repetir la nueva contraseña. | 200 |
 | `GET /auth/validate` | Bearer | Datos del dueño del token (lo usa el gateway). | 200 · 401 |
 | `GET /users/{id}` | Bearer | Datos del usuario (el propio, o cualquiera si es admin). | 200 · 401 · 403 · 404 |
-| `GET /accounts/user/{userId}` | Bearer | Cuenta digital del usuario. | 200 · 401 · 403 · 404 |
+| `PATCH /users/{id}` | Bearer | Editar nombre, apellido y teléfono. | 200 · 400 · 403 · 404 |
+| `GET /accounts/user/{userId}` | Bearer | Cuenta digital del usuario (para conocer el id de cuenta). | 200 · 401 · 403 · 404 |
+| `GET /accounts/{id}` | Bearer | Cuenta con su dinero disponible. | 200 · 400 · 403 · 500 |
+| `PATCH /accounts/{id}` | Bearer | Cambiar el alias. | 200 · 400 · 403 · 409 alias en uso |
+| `GET /accounts/{id}/transactions` | Bearer | Últimos 5 movimientos, del más reciente al más antiguo. | 200 · 400 · 403 · 500 |
+| `GET /accounts/{id}/cards` | Bearer | Tarjetas de la cuenta (lista vacía si no tiene). | 200 · 403 · 500 |
+| `GET /accounts/{id}/cards/{cardId}` | Bearer | Detalle de una tarjeta. | 200 · 403 · 404 |
+| `POST /accounts/{id}/cards` | Bearer | Asociar una tarjeta. Solo se guardan los últimos 4 dígitos. | 201 · 400 · 403 · 409 ya asociada |
+| `DELETE /accounts/{id}/cards/{cardId}` | Bearer | Eliminar una tarjeta. | 200 · 403 · 404 |
 
 Todos los errores tienen el mismo formato:
 
@@ -91,8 +100,10 @@ El código de verificación llega a MailHog (`http://localhost:8025`) o, sin Doc
 ## Tests
 
 ```bash
-./mvnw verify                          # 125 tests unitarios y de integración (H2, sin infraestructura)
-python scripts/run_test_suite.py       # 72 casos de prueba end-to-end contra el sistema levantado
+./mvnw verify                          # tests unitarios y de integración (H2, sin infraestructura)
+./mvnw -pl api-tests test -DskipApiTests=false                 # automatización RestAssured (ver api-tests/README.md)
+./mvnw -pl api-tests test -DskipApiTests=false -Dgroups=smoke  # solo la suite de humo
+python scripts/run_test_suite.py       # casos de prueba de la planilla, contra el sistema levantado
 python scripts/run_test_suite.py --suite smoke
 python scripts/build_test_sheet.py     # regenera docs/testing/casos-de-prueba.xlsx
 ```
