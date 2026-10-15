@@ -19,13 +19,39 @@ api-tests/         Tests automatizados de la API con RestAssured (corren contra 
 api-gateway/       Punto de entrada: rutas y validación de token (:8090)
 auth-service/      Login, logout, JWT (:8081)
 users-service/     Usuarios, roles, verificación de email, recupero de contraseña (:8082)
-account-service/   Cuenta digital: CVU y alias (:8083)
+account-service/   Cuenta digital, tarjetas, movimientos, transferencias y comprobantes (:8083)
 docker/            Script de inicialización de MySQL
 scripts/           Entorno local sin Docker y ejecución de los casos de prueba
-docs/              Infraestructura, testing e informe del sprint
+docs/              Arquitectura, ejemplos de la API, Postman, testing e informes
 ```
 
+## Arquitectura
+
+![Arquitectura y red del entorno](docs/img/arquitectura-local.svg)
+
+- El **cliente** solo habla con el **api-gateway** (puerto 8090). El gateway valida el token contra
+  `auth-service` y enruta cada request al servicio que corresponde, buscándolo en **Eureka** (`lb://`).
+- Cada servicio tiene **su propia base** en MySQL; ninguno lee las tablas de otro. Cuando necesitan
+  datos de otro servicio se llaman por HTTP con **OpenFeign**: `auth-service` pide credenciales a
+  `users-service`, `users-service` le pide a `account-service` que cree la cuenta al registrarse y
+  `account-service` le pide a `users-service` el nombre del titular para las transferencias.
+- Los mails (código de verificación y recupero de contraseña) salen por SMTP; en desarrollo los
+  atrapa **MailHog**.
+
+Más detalle (red, puertos, propuesta para producción) en [docs/infraestructura.md](docs/infraestructura.md).
+
+## Requisitos
+
+- **Java 21** (JDK). Maven no hace falta: el proyecto trae el wrapper (`mvnw` / `mvnw.cmd`).
+- **Docker** con Docker Compose (opciones A y B). Sin Docker se puede usar la opción C.
+- Git, y opcionalmente Python 3 (scripts de prueba) y Postman.
+
 ## Cómo levantarlo
+
+```bash
+git clone https://github.com/FedeVazquez/BilleteraVirtualJava.git
+cd BilleteraVirtualJava
+```
 
 ### Opción A — Todo con Docker
 
@@ -40,7 +66,7 @@ de Eureka en `http://localhost:8761`. Para cambiar secretos o puertos, copiar `.
 
 1. `docker compose up -d mysql mailhog`
 2. En Eclipse: **File → Import → Maven → Existing Maven Projects**, elegir esta carpeta y marcar
-   los 6 proyectos. El JRE del workspace tiene que ser 17 o superior.
+   los proyectos. El JRE del workspace tiene que ser Java 21.
 3. Ejecutar con **Run As → Java Application** la clase `*Application` de cada módulo, empezando
    por `EurekaServerApplication` y dejando `ApiGatewayApplication` para el final.
 
@@ -55,6 +81,45 @@ de Eureka en `http://localhost:8761`. Para cambiar secretos o puertos, copiar `.
 Desde Eclipse es lo mismo que la opción B sin el paso 1, agregando
 `-Dspring.profiles.active=h2` en *Run Configurations → Arguments → VM arguments* de
 `auth-service`, `users-service` y `account-service`. Los datos se pierden al apagar los servicios.
+
+### Comprobar que está andando
+
+Los servicios tardan alrededor de un minuto en arrancar y registrarse en Eureka. Está listo cuando
+`http://localhost:8761` muestra los 4 servicios (`API-GATEWAY`, `AUTH-SERVICE`, `USERS-SERVICE`,
+`ACCOUNT-SERVICE`) y este login de prueba responde **404** (usuario inexistente):
+
+```bash
+curl -i -X POST http://localhost:8090/auth/login -H "Content-Type: application/json" -d '{"email":"nadie@mail.com","password":"Clave1234"}'
+```
+
+## Probar el sistema desde cero
+
+Recorrido completo de la billetera, en orden (todo contra el gateway, `http://localhost:8090`):
+
+1. **Registrarse**: `POST /users/register`. La respuesta trae el `id` del usuario, el `accountId`,
+   el CVU y el alias.
+2. **Buscar el código** de 6 dígitos en MailHog (`http://localhost:8025`) o, sin Docker, en `mails.jsonl`.
+3. **Verificar el email**: `POST /auth/verify-email` con el email y el código.
+4. **Login**: `POST /auth/login`. Copiar el `token` y mandarlo en el resto de los requests como
+   `Authorization: Bearer <token>`.
+5. **Ver el saldo**: `GET /accounts/{accountId}` (arranca en 0).
+6. **Asociar una tarjeta**: `POST /accounts/{accountId}/cards` (por ejemplo `4509953566233704`).
+7. **Ingresar dinero**: `POST /accounts/{accountId}/transferences` con `cardId` y `amount`.
+8. **Transferir**: registrar y verificar un segundo usuario, y transferirle con
+   `POST /accounts/{accountId}/transferences` usando su alias o CVU en `destination`.
+9. **Ver la actividad** (`GET /accounts/{accountId}/activity`) y **descargar el comprobante**
+   (`GET /accounts/{accountId}/activity/{id}/receipt`).
+10. **Logout**: `POST /user/logout`. Después de eso el token deja de servir (401).
+
+Tres formas de hacerlo sin escribir los requests a mano:
+
+- **Postman**: importar [la colección y el entorno](docs/postman) y ejecutar la colección completa
+  (*Run collection*). Los scripts guardan el token, los ids y el código de verificación solos
+  (el código lo leen de MailHog, así que necesita el entorno con Docker).
+- **Swagger UI**: `http://localhost:8090/swagger-ui.html`.
+- **Tests automáticos** contra el sistema levantado: ver [Tests](#tests).
+
+Cada paso con su request y su response real está en **[docs/api-ejemplos.md](docs/api-ejemplos.md)**.
 
 ## API
 
@@ -96,14 +161,57 @@ Todos los errores tienen el mismo formato:
   "details": ["email: El email no tiene un formato válido"] }
 ```
 
-Ejemplo de uso:
+### Ejemplos
+
+Registro:
 
 ```bash
 curl -X POST http://localhost:8090/users/register -H "Content-Type: application/json" \
-  -d '{"firstName":"Juan","lastName":"Perez","dni":"30123456","email":"juan@mail.com","phone":"+5491122334455","password":"Clave1234"}'
+  -d '{"firstName":"Juan","lastName":"Perez","dni":"30123456","email":"juan.perez@mail.com","phone":"+5491122334455","password":"Clave1234"}'
 ```
 
-El código de verificación llega a MailHog (`http://localhost:8025`) o, sin Docker, a `mails.jsonl`.
+```json
+201 Created
+{ "id": 1, "firstName": "Juan", "lastName": "Perez", "dni": "30123456", "email": "juan.perez@mail.com",
+  "phone": "+5491122334455", "accountId": 1, "cvu": "2923847932147848876593", "alias": "fogata.ciervo.jilguero" }
+```
+
+Login (después de verificar el email):
+
+```bash
+curl -X POST http://localhost:8090/auth/login -H "Content-Type: application/json" \
+  -d '{"email":"juan.perez@mail.com","password":"Clave1234"}'
+```
+
+```json
+200 OK
+{ "token": "eyJhbGciOiJIUzI1NiJ9...", "tokenType": "Bearer", "expiresIn": 3600 }
+```
+
+Transferencia a otra cuenta por alias:
+
+```bash
+curl -X POST http://localhost:8090/accounts/1/transferences -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" -H "Idempotency-Key: pago-cena-001" \
+  -d '{"destination":"marea.rio.diente","amount":1500.50,"description":"Cena del viernes"}'
+```
+
+```json
+200 OK
+{ "id": 2, "accountId": 1, "type": "TRANSFER_OUT", "direction": "EXPENSE", "amount": 1500.50,
+  "description": "Cena del viernes", "date": "2026-10-15T16:51:54.941354Z",
+  "counterpart": { "accountId": 2, "cvu": "5382383311879707114523", "alias": "marea.rio.diente", "name": "Ana Gomez" } }
+```
+
+Sin saldo suficiente:
+
+```json
+410 Gone
+{ "timestamp": "2026-10-15T16:51:55.096Z", "status": 410, "error": "Gone",
+  "message": "Fondos insuficientes: el saldo disponible es $48499.50", "path": "/accounts/1/transferences" }
+```
+
+Todos los endpoints, con request y response reales: **[docs/api-ejemplos.md](docs/api-ejemplos.md)**.
 
 ## Tests
 
@@ -122,6 +230,7 @@ Con Docker, agregar `--mailhog http://localhost:8025` a `run_test_suite.py`.
 
 | Documento | Contenido |
 |---|---|
+| [docs/api-ejemplos.md](docs/api-ejemplos.md) | Request y response reales de cada endpoint, en el orden de uso |
 | [docs/informe-sprint-1.pdf](docs/informe-sprint-1.pdf) | Qué se hizo, y cuándo y para qué se usó cada herramienta |
 | [docs/infraestructura.md](docs/infraestructura.md) | Diseño de la infraestructura, red y componentes |
 | [docs/testing/plan-de-pruebas.md](docs/testing/plan-de-pruebas.md) | Plan de pruebas (testing kickoff) |

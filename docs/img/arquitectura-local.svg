@@ -46,8 +46,8 @@
     <text x="540" y="296" font-size="12">:8082 · registro, roles,</text>
     <text x="540" y="312" font-size="12">códigos y contraseñas</text>
     <text x="540" y="458" font-weight="600">account-service</text>
-    <text x="540" y="476" font-size="12">:8083 · cuenta digital,</text>
-    <text x="540" y="492" font-size="12">CVU y alias (TXT)</text>
+    <text x="540" y="476" font-size="12">:8083 · cuenta, tarjetas,</text>
+    <text x="540" y="492" font-size="12">movimientos y transferencias</text>
   </g>
 
   <!-- mysql -->
@@ -81,7 +81,8 @@
     <line x1="396" y1="290" x2="448" y2="290"/>
     <polyline points="422,290 422,472 448,472"/>
     <line x1="540" y1="154" x2="540" y2="248"/>
-    <line x1="540" y1="334" x2="540" y2="428"/>
+    <line x1="530" y1="334" x2="530" y2="428"/>
+    <line x1="556" y1="428" x2="556" y2="334"/>
     <line x1="630" y1="116" x2="804" y2="116"/>
     <line x1="630" y1="292" x2="804" y2="292"/>
     <line x1="630" y1="472" x2="804" y2="472"/>
@@ -93,8 +94,10 @@
     <text x="532" y="190" text-anchor="end">Feign:</text>
     <text x="532" y="204" text-anchor="end">credenciales</text>
     <text x="532" y="218" text-anchor="end">y códigos</text>
-    <text x="532" y="376" text-anchor="end">Feign:</text>
-    <text x="532" y="390" text-anchor="end">crear cuenta</text>
+    <text x="522" y="376" text-anchor="end">Feign:</text>
+    <text x="522" y="390" text-anchor="end">crear cuenta</text>
+    <text x="564" y="376">Feign:</text>
+    <text x="564" y="390">nombre del titular</text>
     <text x="668" y="108">JDBC / JPA</text>
     <text x="668" y="284">JDBC / JPA</text>
     <text x="668" y="464">JDBC / JPA</text>
