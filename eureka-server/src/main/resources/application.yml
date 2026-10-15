@@ -18,6 +18,8 @@ eureka:
     # En local hay pocas instancias: sin esto Eureka entra en modo de autopreservacion
     # y no da de baja los servicios que se apagan.
     enable-self-preservation: false
+    # Sin la cache de solo lectura, un servicio recien registrado se ve enseguida (por defecto tarda hasta 30 s).
+    use-read-only-response-cache: false
 
 management:
   endpoints:
