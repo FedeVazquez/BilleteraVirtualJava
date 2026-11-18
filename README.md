@@ -6,6 +6,8 @@ opcionales, verificación de email y recupero de contraseña. **Sprint 2:** dine
 tarjetas. **Sprint 3:** actividad con filtros e ingreso de dinero desde tarjeta. **Sprint 4:**
 transferencias a CVU/CBU/alias, últimos destinatarios y comprobante en PDF.
 
+> Sobre cómo se hizo este proyecto: ver [AUTORIA.md](AUTORIA.md).
+
 ## Stack
 
 Java 21 · Spring Boot 3.5 · Spring Cloud 2025.0 (Eureka, Gateway, OpenFeign) · Spring Security + JWT
